@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muse.ai — Turn a phrase into a song</title>
+<meta name="description" content="Muse.ai is an open-source model that turns an idea, a mood or a single sentence into original music.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#FBFAF8;
+  --surface:#FFFFFF;
+  --surface-2:#F4F2EE;
+  --ink:#14131A;
+  --ink-2:#4A4856;
+  --ink-3:#807D8C;
+  --line:#E5E2DB;
+  --accent:#5B4BE0;
+  --accent-soft:#EEEBFD;
+  --hot:#F2643C;
+  --radius:16px;
+  --maxw:1120px;
+  --shadow:0 1px 2px rgba(20,19,26,.05), 0 12px 32px -12px rgba(20,19,26,.14);
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F0E13;
+    --surface:#17161D;
+    --surface-2:#1E1D26;
+    --ink:#F5F4F7;
+    --ink-2:#B9B6C4;
+    --ink-3:#878493;
+    --line:#2A2934;
+    --accent:#8E80FF;
+    --accent-soft:#211E3A;
+    --hot:#FF8A66;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -12px rgba(0,0,0,.6);
+  }
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--font);font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+h1,h2,h3{line-height:1.12;margin:0;letter-spacing:-.02em}
+p{margin:0}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.eyebrow{
+  font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:14px;
+}
+.serif{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
+.muted{color:var(--ink-2)}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 20px;border-radius:999px;border:1px solid transparent;
+  font-size:14.5px;font-weight:600;text-decoration:none;cursor:pointer;
+  transition:transform .15s ease, background .2s ease, border-color .2s ease, opacity .2s;
+  font-family:inherit;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--ink-3)}
+
+/* ---------- nav ---------- */
+header.nav{
+  position:sticky;top:0;z-index:50;
+  background:color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter:saturate(180%) blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:-.02em;text-decoration:none}
+.logo-mark{
+  width:28px;height:28px;border-radius:9px;flex:none;
+  background:linear-gradient(140deg,var(--accent),var(--hot));
+  display:grid;place-items:center;
+}
+.logo-mark span{display:block;width:3px;height:11px;background:#fff;border-radius:2px;box-shadow:5px 0 0 rgba(255,255,255,.75),-5px 0 0 rgba(255,255,255,.5)}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{font-size:14.5px;color:var(--ink-2);text-decoration:none}
+.nav-links a:hover{color:var(--ink)}
+@media(max-width:820px){.nav-links a:not(.btn){display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding:88px 0 56px;text-align:center;position:relative;overflow:hidden}
+.hero h1{font-family:var(--serif);font-size:clamp(44px,7.2vw,86px);font-weight:400}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero p.lede{max-width:600px;margin:22px auto 0;font-size:19px;color:var(--ink-2)}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;
+  background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:600;margin-bottom:26px;
+}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blip 1.8s infinite}
+@keyframes blip{0%,100%{opacity:1}50%{opacity:.25}}
+#heroWave{display:block;width:100%;height:110px;margin-top:44px;opacity:.9}
+
+/* ---------- section shell ---------- */
+section{padding:84px 0;border-top:1px solid var(--line)}
+.sec-head{max-width:660px;margin-bottom:44px}
+.sec-head h2{font-size:clamp(28px,3.6vw,40px)}
+.sec-head p{margin-top:14px;font-size:17px;color:var(--ink-2)}
+
+/* ---------- demo ---------- */
+.demo{
+  background:var(--surface);border:1px solid var(--line);border-radius:24px;
+  box-shadow:var(--shadow);padding:28px;
+}
+.demo-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+.demo-bar i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.demo-bar b{margin-left:8px;font-family:var(--mono);font-size:12px;font-weight:400;color:var(--ink-3)}
+.input-row{display:flex;gap:10px;flex-wrap:wrap}
+.input-row input{
+  flex:1;min-width:240px;padding:14px 18px;border-radius:12px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);
+  font-family:inherit;font-size:15.5px;outline:none;transition:border-color .2s, box-shadow .2s;
+}
+.input-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chip{
+  padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;
+  font-family:inherit;font-size:13px;color:var(--ink-2);cursor:pointer;transition:.2s;
+}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.filter-note{margin-top:16px;font-size:13.5px;color:var(--ink-3);max-width:640px}
+.flag{
+  display:inline-block;margin-left:8px;padding:1px 6px;border-radius:4px;
+  background:var(--hot);color:#fff;font-family:var(--mono);font-size:10px;font-weight:500;
+  letter-spacing:.06em;vertical-align:1px;
+}
+.stage{margin-top:22px;border-top:1px solid var(--line);padding-top:22px;display:none}
+.stage.on{display:block}
+.steps{display:flex;flex-direction:column;gap:10px;font-family:var(--mono);font-size:13px;color:var(--ink-3)}
+.step{display:flex;align-items:center;gap:10px;opacity:.35;transition:opacity .3s}
+.step.done{opacity:1;color:var(--ink-2)}
+.step .tick{width:14px;display:inline-block;color:var(--accent)}
+.track{
+  display:none;align-items:center;gap:18px;margin-top:22px;padding:18px;
+  border-radius:16px;background:var(--surface-2);
+}
+.track.on{display:flex}
+.track-meta{flex:1;min-width:0}
+.track-meta b{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track-meta span{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+canvas.viz{width:100%;height:44px;display:block;margin-top:10px}
+.play{
+  width:46px;height:46px;flex:none;border-radius:50%;border:none;cursor:pointer;
+  background:var(--accent);color:#fff;display:grid;place-items:center;transition:transform .15s;
+}
+.play:hover{transform:scale(1.06)}
+.play svg{width:16px;height:16px;fill:currentColor}
+
+/* ---------- features ---------- */
+.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px;transition:border-color .2s, transform .2s;
+}
+.card:hover{border-color:var(--ink-3);transform:translateY(-2px)}
+.card .ico{
+  width:38px;height:38px;border-radius:11px;background:var(--accent-soft);color:var(--accent);
+  display:grid;place-items:center;margin-bottom:16px;font-size:18px;
+}
+.card h3{font-size:17px;margin-bottom:8px}
+.card p{font-size:14.5px;color:var(--ink-2)}
+
+/* ---------- how it works ---------- */
+.steps-grid{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));counter-reset:s}
+.hstep{counter-increment:s;position:relative;padding-top:26px;border-top:2px solid var(--line)}
+.hstep::before{
+  content:"0" counter(s);position:absolute;top:-14px;left:0;background:var(--bg);padding-right:12px;
+  font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500;
+}
+.hstep h3{font-size:19px;margin-bottom:10px}
+.hstep p{font-size:14.5px;color:var(--ink-2)}
+.hstep code{font-family:var(--mono);font-size:13px;background:var(--surface-2);padding:2px 6px;border-radius:5px}
+
+/* ---------- examples ---------- */
+.ex{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;display:flex;flex-direction:column;gap:14px;
+}
+.ex q{font-family:var(--serif);font-size:21px;line-height:1.32;display:block;quotes:'"' '"'}
+.ex .tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:11px;color:var(--ink-3);border:1px solid var(--line);padding:3px 8px;border-radius:999px}
+.ex-foot{display:flex;align-items:center;gap:14px;margin-top:auto}
+.ex-foot .play{width:38px;height:38px}
+
+/* ---------- install ---------- */
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.badge{display:inline-flex;font-family:var(--mono);font-size:11.5px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.badge span{padding:4px 9px;background:var(--surface-2);color:var(--ink-2)}
+.badge span+span{background:var(--accent);color:#fff;border:0}
+.codeblock{position:relative;background:#14131A;border-radius:14px;padding:22px 22px;overflow-x:auto}
+:root:not([data-theme="light"]) .codeblock{border:1px solid var(--line)}
+.codeblock pre{margin:0;font-family:var(--mono);font-size:13.5px;line-height:1.85;color:#E8E6F0}
+.codeblock .c{color:#6F6C86}
+.codeblock .k{color:#8E80FF}
+.codeblock .s{color:#7FD1A8}
+.copy{
+  position:absolute;top:12px;right:12px;background:rgba(255,255,255,.08);color:#E8E6F0;
+  border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:5px 10px;
+  font-family:var(--mono);font-size:11.5px;cursor:pointer;
+}
+.copy:hover{background:rgba(255,255,255,.16)}
+.two{display:grid;gap:36px;grid-template-columns:1.1fr .9fr;align-items:start}
+@media(max-width:860px){.two{grid-template-columns:1fr}}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:44px 0;color:var(--ink-3);font-size:14px}
+.foot-in{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+.foot-in a{text-decoration:none}
+.foot-in a:hover{color:var(--ink)}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="logo" href="#top"><span class="logo-mark"><span></span></span> Muse.ai</a>
+    <nav class="nav-links">
+      <a href="#demo">Demo</a>
+      <a href="#features">Features</a>
+      <a href="#examples">Examples</a>
+      <a href="#install">Install</a>
+      <a class="btn btn-primary" href="https://github.com/your-username/muse-ai">★ Star on GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <div class="hero wrap">
+    <div class="pill"><span class="dot"></span> v0.4 · open source · MIT</div>
+    <h1>Describe a feeling.<br>Get back a <em>song</em>.</h1>
+    <p class="lede">Muse.ai turns a sentence, a memory or a half-formed idea into original music — melody, harmony and arrangement, generated in seconds.</p>
+    <div class="hero-cta">
+      <a class="btn btn-accent" href="#demo">Try the demo</a>
+      <a class="btn btn-ghost" href="#install">Read the docs</a>
+    </div>
+    <canvas id="heroWave" aria-hidden="true"></canvas>
+  </div>
+
+  <!-- DEMO -->
+  <section id="demo">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">Live demo</div>
+        <h2>Write the prompt. Hear the result.</h2>
+        <p>This page runs a tiny in-browser synth so you can hear the shape of an idea instantly. The real model returns full stems and MIDI.</p>
+      </div>
+
+      <div class="demo">
+        <div class="demo-bar"><i></i><i></i><i></i><b>muse — prompt</b></div>
+        <div class="input-row">
+          <input id="prompt" type="text" placeholder="a rainy Tuesday in Lisbon, slow piano, tape hiss" aria-label="Music prompt">
+          <button class="btn btn-accent" id="gen">Generate</button>
+        </div>
+        <div class="chips" id="chips"></div>
+        <p class="filter-note">No prompt filter. Swear at it, be blunt, write the ugly version of the sentence — profanity and raw language are read as tone and energy, not rejected. Explicit lyrics are allowed and flagged in the metadata, never bleeped.</p>
+
+        <div class="stage" id="stage">
+          <div class="steps" id="steps"></div>
+          <div class="track" id="track">
+            <button class="play" id="playMain" aria-label="Play generated track">
+              <svg viewBox="0 0 24 24" id="playIconMain"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <div class="track-meta">
+              <b id="trackName">untitled</b>
+              <span id="trackInfo">—</span>
+              <canvas class="viz" id="vizMain"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">Features</div>
+        <h2>Built for people who hear it before they can play it.</h2>
+      </div>
+      <div class="grid">
+        <div class="card"><div class="ico">✍︎</div><h3>Prompt-native</h3><p>Plain language in, music out. "Nostalgic but not sad, 90 bpm, brushed drums" is a valid input.</p></div>
+        <div class="card"><div class="ico">🎛</div><h3>Stems, not just mixes</h3><p>Every render ships separated tracks — drums, bass, keys, lead — ready for your DAW.</p></div>
+        <div class="card"><div class="ico">♪</div><h3>MIDI export</h3><p>Get the notes, not only the audio. Re-voice, re-tempo and re-arrange anything.</p></div>
+        <div class="card"><div class="ico">↻</div><h3>Iterative edits</h3><p>"Same idea, warmer, drop the drums after bar 16." Muse keeps the motif and changes the rest.</p></div>
+        <div class="card"><div class="ico">⌘</div><h3>CLI &amp; Python API</h3><p>One command locally, or three lines in a notebook. Batch a hundred variations overnight.</p></div>
+        <div class="card"><div class="ico">⚖︎</div><h3>Clean training data</h3><p>Trained on licensed and public-domain recordings. Output is yours, commercially usable.</p></div>
+        <div class="card"><div class="ico">🅴</div><h3>Unfiltered prompts</h3><p>Swearing, blunt phrasing and explicit lyrics all go through. Muse reads them as attitude and energy instead of refusing the prompt — and tags the render <code style="font-family:var(--mono);font-size:12.5px">explicit</code> so you can filter downstream if you need to.</p></div>
+        <div class="card"><div class="ico">↯</div><h3>Attitude mapping</h3><p>Harsh language pushes tempo up, harmony minor, and the mix dirtier — the same way a producer would read the room.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">How it works</div>
+        <h2>From a phrase to a finished arrangement.</h2>
+      </div>
+      <div class="steps-grid">
+        <div class="hstep">
+          <h3>Read the intent</h3>
+          <p>A language encoder maps your phrase to a musical intent vector: mood, energy, era, instrumentation, tempo range and harmonic colour.</p>
+        </div>
+        <div class="hstep">
+          <h3>Compose the structure</h3>
+          <p>A symbolic model writes the piece as notes first — key, chord movement, motif, form — so the result has an actual shape instead of a texture. Output is <code>.mid</code>.</p>
+        </div>
+        <div class="hstep">
+          <h3>Render and mix</h3>
+          <p>A neural synthesizer performs the score with the chosen instruments, then a mix stage balances and masters it. You get <code>.wav</code>, stems and the MIDI.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXAMPLES -->
+  <section id="examples">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">Examples</div>
+        <h2>Four prompts, four very different tracks.</h2>
+        <p>Previews below are generated live in your browser from the same seed logic — press play.</p>
+      </div>
+      <div class="grid" id="exGrid"></div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section id="install">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">Get started</div>
+        <h2>Running locally takes about a minute.</h2>
+      </div>
+      <div class="two">
+        <div>
+          <div class="badges">
+            <span class="badge"><span>license</span><span>MIT</span></span>
+            <span class="badge"><span>python</span><span>3.10+</span></span>
+            <span class="badge"><span>build</span><span>passing</span></span>
+            <span class="badge"><span>stars</span><span>4.2k</span></span>
+          </div>
+          <div class="codeblock">
+            <button class="copy" id="copyBtn">copy</button>
+            <pre id="code"><span class="c"># clone and install</span>
+git clone https://github.com/your-username/muse-ai.git
+<span class="k">cd</span> muse-ai
+pip install -e .
+
+<span class="c"># generate from a phrase</span>
+muse <span class="s">"a rainy Tuesday in Lisbon, slow piano, tape hiss"</span> \
+  --length 45s --stems --out ./renders
+
+<span class="c"># prompts are never filtered; --tag-explicit only labels the output</span>
+muse <span class="s">"fuck this week, loud guitars, no chorus"</span> --tag-explicit
+
+<span class="c"># or from Python</span>
+<span class="k">from</span> muse <span class="k">import</span> Muse
+Muse().compose(<span class="s">"sunrise over an empty motorway"</span>).save(<span class="s">"drive.wav"</span>)</pre>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:20px">
+            <h3>Contributing</h3>
+            <p>Issues and PRs are welcome — especially new instrument packs, language support for non-English prompts, and evaluation datasets. Read <code style="font-family:var(--mono);font-size:13px">CONTRIBUTING.md</code> before opening a PR.</p>
+          </div>
+          <div class="card">
+            <h3>License</h3>
+            <p>MIT for the code, CC-BY for the pretrained weights. Music you generate belongs to you, with no attribution required.</p>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">
+            <a class="btn btn-primary" href="https://github.com/your-username/muse-ai">View repository</a>
+            <a class="btn btn-ghost" href="https://github.com/your-username/muse-ai/issues">Open an issue</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <div>© <span id="yr">2026</span> Muse.ai — released under the MIT License.</div>
+    <div class="foot-links">
+      <a href="https://github.com/your-username/muse-ai">GitHub</a>
+      <a href="#demo">Demo</a>
+      <a href="#install">Docs</a>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   Muse.ai — front-end only. No backend, no audio files.
+   Everything you hear is synthesized with the Web Audio API
+   from a deterministic seed derived from the prompt text.
+   ========================================================= */
+
+/* ---------- deterministic seeding ---------- */
+function hashString(str){
+  let h = 2166136261;
+  for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function rng(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- musical vocabulary ---------- */
+const SCALES = {
+  minorPent:[0,3,5,7,10],
+  majorPent:[0,2,4,7,9],
+  dorian:[0,2,3,5,7,9,10],
+  lydian:[0,2,4,6,7,9,11],
+  aeolian:[0,2,3,5,7,8,10]
+};
+const DARK = ['rain','sad','melancholy','night','lonely','grief','winter','fog','slow','ghost','empty','cold','saudade','blue'];
+const BRIGHT = ['sun','happy','summer','dance','bright','joy','festival','beach','party','morning','sunrise','warm','gold'];
+/* Muse has no prompt filter: profanity and blunt language are treated as
+   musical information (energy + attitude), not as something to reject. */
+const AGGRO = ['fuck','shit','damn','hell','bitch','ass','piss','bastard','crap','angry','rage','furious','hate','scream','loud','riot','fight','wasted','fed up','pissed'];
+
+function readPrompt(text){
+  const t = (text||'').toLowerCase();
+  const seed = hashString(t || 'muse');
+  const r = rng(seed);
+  const aggro = AGGRO.some(w=>t.includes(w));
+  const dark = DARK.some(w=>t.includes(w)) || aggro;
+  const bright = BRIGHT.some(w=>t.includes(w)) && !aggro;
+  let scale;
+  if (aggro) scale = 'minorPent';
+  else if (dark) scale = r()<0.5 ? 'minorPent' : 'aeolian';
+  else if (bright) scale = r()<0.5 ? 'majorPent' : 'lydian';
+  else scale = ['dorian','minorPent','majorPent','lydian'][Math.floor(r()*4)];
+
+  let bpm = Math.round(72 + r()*56);
+  if (/slow|ballad|ambient|lullab/.test(t)) bpm = Math.round(58 + r()*18);
+  if (/fast|dance|drum|techno|run|chase/.test(t)) bpm = Math.round(120 + r()*30);
+  if (aggro) bpm = Math.round(138 + r()*24);
+
+  const root = 48 + Math.floor(r()*10);           // MIDI note
+  const keys = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+  return {
+    seed, r: rng(seed), scale, bpm, root,
+    keyName: keys[root%12] + (dark || scale==='minorPent' || scale==='aeolian' ? ' minor' : ' major'),
+    hats: !/ambient|lullab|piano only|solo/.test(t),
+    dark, aggro
+  };
+}
+const mtof = m => 440 * Math.pow(2, (m-69)/12);
+
+/* ---------- audio engine (one voice at a time) ---------- */
+const Engine = (()=>{
+  let ctx, master, analyser, data;
+  let timer=null, nodes=[], current=null, onStop=null;
+
+  function init(){
+    if (ctx) return;
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = 0.6;
+    analyser = ctx.createAnalyser(); analyser.fftSize = 512;
+    data = new Uint8Array(analyser.frequencyBinCount);
+    master.connect(analyser); analyser.connect(ctx.destination);
+  }
+
+  function tone(freq, t, dur, type, gain, filter){
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.value = freq;
+    let last = g;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g);
+    if (filter){
+      const f = ctx.createBiquadFilter();
+      f.type='lowpass'; f.frequency.value = filter;
+      g.connect(f); last = f;
+    }
+    last.connect(master);
+    o.start(t); o.stop(t + dur + 0.05);
+    nodes.push(o);
+  }
+
+  function noise(t, dur, gain){
+    const len = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i=0;i<len;i++) ch[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 3);
+    const s = ctx.createBufferSource(); s.buffer = buf;
+    const g = ctx.createGain(); g.gain.value = gain;
+    const f = ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value = 6000;
+    s.connect(f); f.connect(g); g.connect(master);
+    s.start(t); nodes.push(s);
+  }
+
+  function play(id, spec, stopped){
+    if (current === id){ stop(); return false; }
+    stop();
+    init();
+    if (ctx.state === 'suspended') ctx.resume();
+    current = id; onStop = stopped;
+
+    const p = spec, sc = SCALES[p.scale], step = 60 / p.bpm / 2; // eighth notes
+    const bars = 8, stepsPerBar = 8;
+    let i = 0;
+    const start = ctx.currentTime + 0.08;
+
+    // schedule the whole loop up front (short enough to be safe)
+    for (let bar=0; bar<bars; bar++){
+      const barT = start + bar * stepsPerBar * step;
+      const degree = [0,5,3,4][bar % 4];
+      const chordRoot = p.root + sc[degree % sc.length];
+
+      // pad / chord
+      [0,2,4].forEach((k,n)=>{
+        tone(mtof(chordRoot + sc[(degree+k) % sc.length] + (n===2?12:0)),
+             barT, step*stepsPerBar*0.95, 'triangle', 0.055, 1600);
+      });
+      // bass
+      tone(mtof(chordRoot - 12), barT, step*3.2, 'sawtooth', 0.16, 320);
+      tone(mtof(chordRoot - 12), barT + step*4, step*3.2, 'sawtooth', 0.13, 320);
+
+      // melody
+      for (let s=0; s<stepsPerBar; s++){
+        const t = barT + s*step;
+        if (p.r() < (s%2===0 ? 0.78 : 0.42)){
+          const oct = p.r() < 0.22 ? 12 : 0;
+          const note = p.root + 12 + sc[Math.floor(p.r()*sc.length)] + oct;
+          const leadType = p.aggro ? 'square' : (p.dark ? 'sine' : 'triangle');
+          tone(mtof(note), t, step * (p.r()<0.25 ? 2.2 : 1.1), leadType, p.aggro ? 0.11 : 0.14, p.aggro ? 2600 : 4200);
+        }
+        if (p.hats && s % 2 === 1) noise(t, 0.06, p.aggro ? 0.09 : 0.05);
+        if (p.hats && (s === 0 || s === 4)) tone(70, t, 0.16, 'sine', p.aggro ? 0.38 : 0.28, 200);
+        if (p.aggro && s === 4) noise(t, 0.22, 0.12); // snare-ish backbeat
+      }
+      i++;
+    }
+
+    const total = bars * stepsPerBar * step * 1000 + 400;
+    timer = setTimeout(()=>{ stop(); }, total);
+    return true;
+  }
+
+  function stop(){
+    if (timer){ clearTimeout(timer); timer = null; }
+    nodes.forEach(n=>{ try{ n.stop(); }catch(e){} });
+    nodes = [];
+    if (onStop) onStop();
+    onStop = null; current = null;
+  }
+
+  function levels(){
+    if (!analyser) return null;
+    analyser.getByteFrequencyData(data);
+    return data;
+  }
+
+  return { play, stop, levels, get current(){ return current; } };
+})();
+
+/* ---------- canvas visualizers ---------- */
+function fitCanvas(c){
+  const dpr = window.devicePixelRatio || 1;
+  const r = c.getBoundingClientRect();
+  c.width = Math.max(1, r.width * dpr);
+  c.height = Math.max(1, r.height * dpr);
+  const ctx = c.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return ctx;
+}
+function accent(){ return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); }
+function lineColor(){ return getComputedStyle(document.documentElement).getPropertyValue('--line').trim(); }
+
+const vizzes = []; // {canvas, id}
+function registerViz(canvas, id){ vizzes.push({canvas, id}); }
+
+function drawViz(){
+  vizzes.forEach(({canvas, id})=>{
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.width / dpr, h = canvas.height / dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,w,h);
+    const active = Engine.current === id;
+    const d = active ? Engine.levels() : null;
+    const bars = 44, gap = 2, bw = Math.max(1, (w - gap*(bars-1)) / bars);
+    for (let i=0;i<bars;i++){
+      let v;
+      if (d){ v = d[Math.floor(i * d.length / bars / 2.2)] / 255; v = Math.pow(v, 1.4); }
+      else v = 0.06;
+      const bh = Math.max(2, v * h);
+      ctx.fillStyle = active ? accent() : lineColor();
+      ctx.globalAlpha = active ? (0.35 + v*0.65) : 1;
+      const x = i*(bw+gap);
+      ctx.beginPath();
+      const rr = Math.max(0, Math.min(bw/2, 2));
+      ctx.roundRect ? ctx.roundRect(x, (h-bh)/2, bw, bh, rr) : ctx.rect(x, (h-bh)/2, bw, bh);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  });
+  requestAnimationFrame(drawViz);
+}
+
+/* hero waveform (idle animation) */
+(function heroWave(){
+  const c = document.getElementById('heroWave');
+  let ctx = fitCanvas(c);
+  window.addEventListener('resize', ()=>{ ctx = fitCanvas(c); });
+  let t = 0;
+  (function loop(){
+    const dpr = window.devicePixelRatio || 1;
+    const w = c.width/dpr, h = c.height/dpr;
+    ctx.clearRect(0,0,w,h);
+    const bars = Math.max(8, Math.floor(w/9));
+    const bw = 3, gap = Math.max(0, (w - bars*bw)/(bars-1));
+    for (let i=0;i<bars;i++){
+      const p = i/bars;
+      const env = Math.sin(p*Math.PI);
+      const v = (Math.sin(p*11 + t) * 0.5 + Math.sin(p*23 - t*1.7) * 0.3 + Math.sin(p*4 + t*0.6) * 0.4);
+      const bh = Math.max(3, Math.abs(v) * env * h * 0.85);
+      const g = ctx.createLinearGradient(0,(h-bh)/2,0,(h+bh)/2);
+      g.addColorStop(0, accent()); g.addColorStop(1, accent());
+      ctx.fillStyle = g;
+      ctx.globalAlpha = 0.18 + env*0.5;
+      const x = i*(bw+gap);
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(x,(h-bh)/2,bw,bh,2) : ctx.rect(x,(h-bh)/2,bw,bh);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    t += 0.03;
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ---------- demo box ---------- */
+const SUGGESTIONS = [
+  "a rainy Tuesday in Lisbon, slow piano, tape hiss",
+  "sunrise over an empty motorway",
+  "the last five minutes of a good party",
+  "found a letter from 1997",
+  "cold open, synth arpeggio, 128 bpm",
+  "fuck this week, loud guitars, no chorus",
+  "angry breakup letter set to a drum machine",
+  "shitty little town, big dreams, banjo",
+  "waking up at 4am and giving up on sleep",
+  "two people not saying the obvious thing",
+  "a heist that goes wrong in the third act",
+  "grandmother's kitchen, summer, radio in the background",
+  "hell of a hangover, organ, 60 bpm",
+  "last train, empty platform, one saxophone",
+  "credits roll, everyone survived"
+];
+const chipsEl = document.getElementById('chips');
+SUGGESTIONS.forEach(s=>{
+  const b = document.createElement('button');
+  b.className='chip'; b.type='button'; b.textContent = s;
+  b.onclick = ()=>{ document.getElementById('prompt').value = s; generate(); };
+  chipsEl.appendChild(b);
+});
+
+const STEP_TEXT = [
+  "parsing intent · mood, energy, instrumentation",
+  "choosing key and tempo",
+  "composing motif and chord movement",
+  "rendering performance",
+  "mixing · done"
+];
+
+let mainSpec = null, genToken = 0;
+const playIconMain = document.getElementById('playIconMain');
+const PLAY_PATH = "M8 5v14l11-7z", PAUSE_PATH = "M6 5h4v14H6zm8 0h4v14h-4z";
+
+function setIcon(el, playing){ el.querySelector('path').setAttribute('d', playing ? PAUSE_PATH : PLAY_PATH); }
+
+function generate(){
+  const text = document.getElementById('prompt').value.trim() || SUGGESTIONS[0];
+  Engine.stop();
+  const token = ++genToken;
+  const stage = document.getElementById('stage');
+  const steps = document.getElementById('steps');
+  const track = document.getElementById('track');
+  stage.classList.add('on'); track.classList.remove('on');
+  steps.innerHTML = '';
+  STEP_TEXT.forEach(s=>{
+    const d = document.createElement('div');
+    d.className='step';
+    d.innerHTML = '<span class="tick">›</span><span>'+s+'</span>';
+    steps.appendChild(d);
+  });
+  const els = [...steps.children];
+  els.forEach((el, i)=>{
+    setTimeout(()=>{
+      if (token !== genToken) return;
+      el.classList.add('done');
+      el.querySelector('.tick').textContent = '✓';
+      if (i === els.length-1){
+        mainSpec = readPrompt(text);
+        document.getElementById('trackName').innerHTML =
+          escapeHtml(titleFrom(text)) + (mainSpec.aggro ? '<span class="flag">EXPLICIT</span>' : '');
+        document.getElementById('trackInfo').textContent =
+          mainSpec.keyName + " · " + mainSpec.bpm + " bpm · 0:32 · wav + stems + mid"
+          + (mainSpec.aggro ? " · unfiltered" : "");
+        track.classList.add('on');
+      }
+    }, 260 * (i+1));
+  });
+}
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function titleFrom(text){
+  const words = text.replace(/[^\p{L}\p{N}\s]/gu,'').split(/\s+/).filter(Boolean);
+  const pick = words.slice(0, 3).join(' ');
+  return (pick || 'untitled').replace(/\b\w/g, c=>c.toUpperCase());
+}
+document.getElementById('gen').onclick = generate;
+document.getElementById('prompt').addEventListener('keydown', e=>{ if (e.key === 'Enter') generate(); });
+
+document.getElementById('playMain').onclick = ()=>{
+  if (!mainSpec) return;
+  const text = document.getElementById('prompt').value.trim() || SUGGESTIONS[0];
+  const spec = readPrompt(text);
+  const started = Engine.play('main', spec, ()=> setIcon(playIconMain, false));
+  setIcon(playIconMain, started);
+};
+
+/* ---------- examples gallery ---------- */
+const EXAMPLES = [
+  { q:"a rainy Tuesday in Lisbon, slow piano, tape hiss", tags:["ambient","piano","72 bpm"], len:"0:48" },
+  { q:"sunrise over an empty motorway", tags:["synth","cinematic","104 bpm"], len:"1:12" },
+  { q:"the last five minutes of a good party", tags:["house","warm","124 bpm"], len:"0:56" },
+  { q:"found a letter from 1997", tags:["lo-fi","nostalgic","88 bpm"], len:"1:04" },
+  { q:"fuck this week, loud guitars, no chorus", tags:["explicit","punk","152 bpm"], len:"1:41", explicit:true },
+  { q:"angry breakup letter set to a drum machine", tags:["explicit","industrial","144 bpm"], len:"1:18", explicit:true }
+];
+const exGrid = document.getElementById('exGrid');
+EXAMPLES.forEach((ex, i)=>{
+  const id = 'ex'+i;
+  const el = document.createElement('div');
+  el.className = 'ex';
+  el.innerHTML = `
+    <q>${ex.q}</q>${ex.explicit ? '<span class="flag" style="margin-left:0">EXPLICIT</span>' : ''}
+    <div class="tags">${ex.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <canvas class="viz" id="viz-${id}"></canvas>
+    <div class="ex-foot">
+      <button class="play" data-id="${id}" aria-label="Play example">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <span class="tag" style="border:0;padding:0">${ex.len} · wav + stems</span>
+    </div>`;
+  exGrid.appendChild(el);
+  const btn = el.querySelector('.play');
+  const icon = btn.querySelector('svg');
+  btn.onclick = ()=>{
+    const started = Engine.play(id, readPrompt(ex.q), ()=> setIcon(icon, false));
+    document.querySelectorAll('.play svg').forEach(s=>{ if (s!==icon) setIcon(s,false); });
+    setIcon(icon, started);
+  };
+});
+
+/* ---------- viz setup ---------- */
+window.addEventListener('load', ()=>{
+  const mainC = document.getElementById('vizMain');
+  fitCanvas(mainC); registerViz(mainC, 'main');
+  EXAMPLES.forEach((_, i)=>{
+    const c = document.getElementById('viz-ex'+i);
+    fitCanvas(c); registerViz(c, 'ex'+i);
+  });
+  window.addEventListener('resize', ()=> vizzes.forEach(v=>fitCanvas(v.canvas)));
+  drawViz();
+});
+
+/* ---------- copy button ---------- */
+document.getElementById('copyBtn').onclick = async ()=>{
+  const btn = document.getElementById('copyBtn');
+  try{
+    await navigator.clipboard.writeText(document.getElementById('code').innerText);
+    btn.textContent = 'copied';
+  }catch(e){ btn.textContent = 'select manually'; }
+  setTimeout(()=>{ btn.textContent = 'copy'; }, 1600);
+};
+
+document.getElementById('yr').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
