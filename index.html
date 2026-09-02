@@ -3,1015 +3,1120 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Muse.ai — Turn a phrase into a song</title>
-<meta name="description" content="Muse.ai is an open-source model that turns an idea, a mood or a single sentence into original music.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Muse — the AI that writes songs and sings them</title>
+<meta name="description" content="Tell Muse what the song should be about. It writes the lyrics, then sings and plays them.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎤</text></svg>">
 <style>
-/* ---------- tokens ---------- */
+/* ============================================================
+   Muse — chat interface
+   ============================================================ */
 :root{
-  --bg:#FBFAF8;
-  --surface:#FFFFFF;
-  --surface-2:#F4F2EE;
-  --ink:#14131A;
-  --ink-2:#4A4856;
-  --ink-3:#807D8C;
-  --line:#E5E2DB;
-  --accent:#5B4BE0;
-  --accent-soft:#EEEBFD;
-  --hot:#F2643C;
-  --radius:16px;
-  --maxw:1120px;
-  --shadow:0 1px 2px rgba(20,19,26,.05), 0 12px 32px -12px rgba(20,19,26,.14);
-  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --bg:#ffffff;
+  --side:#f9f9f9;
+  --bubble:#f4f4f4;
+  --ink:#0d0d0d;
+  --ink-2:#5d5d5d;
+  --ink-3:#8f8f8f;
+  --line:#e5e5e5;
+  --line-2:#ececec;
+  --accent:#5b4be0;
+  --accent-soft:#efedfd;
+  --hot:#e5533c;
+  --send:#0d0d0d;
+  --send-ink:#ffffff;
+  --font:"Söhne",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
 }
-@media (prefers-color-scheme: dark){
+@media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#0F0E13;
-    --surface:#17161D;
-    --surface-2:#1E1D26;
-    --ink:#F5F4F7;
-    --ink-2:#B9B6C4;
-    --ink-3:#878493;
-    --line:#2A2934;
-    --accent:#8E80FF;
-    --accent-soft:#211E3A;
-    --hot:#FF8A66;
-    --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -12px rgba(0,0,0,.6);
+    --bg:#212121; --side:#171717; --bubble:#303030;
+    --ink:#ececec; --ink-2:#b4b4b4; --ink-3:#8f8f8f;
+    --line:#333333; --line-2:#2a2a2a;
+    --accent:#9d90ff; --accent-soft:#2b2740; --hot:#ff8a72;
+    --send:#ffffff; --send-ink:#0d0d0d;
   }
 }
-
-/* ---------- base ---------- */
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html,body{height:100%}
 body{
   margin:0;background:var(--bg);color:var(--ink);
   font-family:var(--font);font-size:16px;line-height:1.6;
-  -webkit-font-smoothing:antialiased;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
 }
-a{color:inherit}
-h1,h2,h3{line-height:1.12;margin:0;letter-spacing:-.02em}
-p{margin:0}
-.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
-.eyebrow{
-  font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--accent);margin-bottom:14px;
-}
-.serif{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
-.muted{color:var(--ink-2)}
+button{font-family:inherit}
 
-/* ---------- buttons ---------- */
-.btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:11px 20px;border-radius:999px;border:1px solid transparent;
-  font-size:14.5px;font-weight:600;text-decoration:none;cursor:pointer;
-  transition:transform .15s ease, background .2s ease, border-color .2s ease, opacity .2s;
-  font-family:inherit;
-}
-.btn:hover{transform:translateY(-1px)}
-.btn-primary{background:var(--ink);color:var(--bg)}
-.btn-accent{background:var(--accent);color:#fff}
-.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
-.btn-ghost:hover{border-color:var(--ink-3)}
+/* ---------- app shell ---------- */
+.app{display:flex;height:100vh;height:100dvh}
 
-/* ---------- nav ---------- */
-header.nav{
-  position:sticky;top:0;z-index:50;
-  background:color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter:saturate(180%) blur(12px);
-  border-bottom:1px solid var(--line);
+/* ---------- sidebar ---------- */
+.sidebar{
+  width:260px;flex:none;background:var(--side);border-right:1px solid var(--line-2);
+  display:flex;flex-direction:column;padding:10px;transition:margin-left .2s ease;
 }
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:-.02em;text-decoration:none}
-.logo-mark{
-  width:28px;height:28px;border-radius:9px;flex:none;
-  background:linear-gradient(140deg,var(--accent),var(--hot));
-  display:grid;place-items:center;
+.brand{display:flex;align-items:center;gap:9px;padding:8px 8px 14px;font-weight:600;font-size:15px}
+.brand .mark{
+  width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(140deg,var(--accent),var(--hot));color:#fff;font-size:13px;
 }
-.logo-mark span{display:block;width:3px;height:11px;background:#fff;border-radius:2px;box-shadow:5px 0 0 rgba(255,255,255,.75),-5px 0 0 rgba(255,255,255,.5)}
-.nav-links{display:flex;align-items:center;gap:28px}
-.nav-links a{font-size:14.5px;color:var(--ink-2);text-decoration:none}
-.nav-links a:hover{color:var(--ink)}
-@media(max-width:820px){.nav-links a:not(.btn){display:none}}
-
-/* ---------- hero ---------- */
-.hero{padding:88px 0 56px;text-align:center;position:relative;overflow:hidden}
-.hero h1{font-family:var(--serif);font-size:clamp(44px,7.2vw,86px);font-weight:400}
-.hero h1 em{font-style:italic;color:var(--accent)}
-.hero p.lede{max-width:600px;margin:22px auto 0;font-size:19px;color:var(--ink-2)}
-.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
-.pill{
-  display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;
-  background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:600;margin-bottom:26px;
+.newbtn{
+  display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px;border-radius:10px;
+  border:1px solid var(--line);background:transparent;color:var(--ink);
+  font-size:14px;font-weight:500;cursor:pointer;text-align:left;
 }
-.dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blip 1.8s infinite}
-@keyframes blip{0%,100%{opacity:1}50%{opacity:.25}}
-#heroWave{display:block;width:100%;height:110px;margin-top:44px;opacity:.9}
-
-/* ---------- section shell ---------- */
-section{padding:84px 0;border-top:1px solid var(--line)}
-.sec-head{max-width:660px;margin-bottom:44px}
-.sec-head h2{font-size:clamp(28px,3.6vw,40px)}
-.sec-head p{margin-top:14px;font-size:17px;color:var(--ink-2)}
-
-/* ---------- demo ---------- */
-.demo{
-  background:var(--surface);border:1px solid var(--line);border-radius:24px;
-  box-shadow:var(--shadow);padding:28px;
-}
-.demo-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px}
-.demo-bar i{width:10px;height:10px;border-radius:50%;background:var(--line)}
-.demo-bar b{margin-left:8px;font-family:var(--mono);font-size:12px;font-weight:400;color:var(--ink-3)}
-.input-row{display:flex;gap:10px;flex-wrap:wrap}
-.input-row input{
-  flex:1;min-width:240px;padding:14px 18px;border-radius:12px;
-  border:1px solid var(--line);background:var(--bg);color:var(--ink);
-  font-family:inherit;font-size:15.5px;outline:none;transition:border-color .2s, box-shadow .2s;
-}
-.input-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.chip{
-  padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;
-  font-family:inherit;font-size:13px;color:var(--ink-2);cursor:pointer;transition:.2s;
-}
-.chip:hover{border-color:var(--accent);color:var(--accent)}
-.voice-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
-.voice-row label{font-size:13.5px;font-weight:600;color:var(--ink-2)}
-.voice-row select{
-  padding:7px 12px;border-radius:9px;border:1px solid var(--line);
-  background:var(--bg);color:var(--ink);font-family:inherit;font-size:13.5px;cursor:pointer;
-}
-.voice-row select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.voice-row .hint{font-size:13px;color:var(--ink-3)}
-.lyric{
-  display:block;margin-top:8px;font-family:var(--mono);font-size:12.5px;color:var(--accent);
+.newbtn:hover{background:var(--bubble)}
+.hist-label{padding:18px 10px 6px;font-size:12px;font-weight:600;color:var(--ink-3)}
+.hist{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.hist button{
+  width:100%;text-align:left;padding:8px 10px;border-radius:9px;border:0;background:transparent;
+  color:var(--ink-2);font-size:14px;cursor:pointer;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.filter-note{margin-top:16px;font-size:13.5px;color:var(--ink-3);max-width:640px}
+.hist button:hover{background:var(--bubble);color:var(--ink)}
+.hist button.on{background:var(--bubble);color:var(--ink)}
+.hist .empty{padding:8px 10px;font-size:13px;color:var(--ink-3)}
+.side-foot{border-top:1px solid var(--line-2);padding:10px 8px 4px;font-size:12.5px;color:var(--ink-3)}
+.side-foot a{color:inherit}
+
+/* ---------- main column ---------- */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+.topbar{
+  height:52px;flex:none;display:flex;align-items:center;gap:10px;padding:0 14px;
+  border-bottom:1px solid var(--line-2);font-size:14.5px;font-weight:600;
+}
+.topbar .model{color:var(--ink-2);font-weight:500}
+.topbar .tag{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;padding:2px 7px;border-radius:5px;
+  background:var(--accent-soft);color:var(--accent);
+}
+.menu{display:none;background:none;border:0;color:var(--ink);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:8px}
+.menu:hover{background:var(--bubble)}
+
+.scroll{flex:1;overflow-y:auto;scroll-behavior:smooth}
+.thread{max-width:768px;margin:0 auto;padding:26px 20px 40px}
+
+/* ---------- empty state ---------- */
+.empty-state{
+  min-height:calc(100vh - 220px);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:24px;padding:20px;
+}
+.empty-state h1{font-size:29px;font-weight:600;letter-spacing:-.01em;margin:0}
+.empty-state p{margin:0;color:var(--ink-2);font-size:15px;max-width:460px}
+.seeds{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:620px}
+@media(max-width:640px){.seeds{grid-template-columns:1fr}}
+.seed{
+  text-align:left;padding:13px 15px;border-radius:14px;border:1px solid var(--line);
+  background:transparent;color:var(--ink);cursor:pointer;font-size:14px;line-height:1.45;
+}
+.seed b{display:block;font-weight:600;margin-bottom:2px}
+.seed span{color:var(--ink-3);font-size:13px}
+.seed:hover{background:var(--bubble)}
+
+/* ---------- messages ---------- */
+.msg{display:flex;gap:14px;margin-bottom:26px}
+.msg.user{justify-content:flex-end}
+.msg.user .body{
+  background:var(--bubble);padding:11px 16px;border-radius:20px;max-width:78%;
+  white-space:pre-wrap;word-break:break-word;
+}
+.avatar{
+  width:26px;height:26px;border-radius:50%;flex:none;margin-top:3px;display:grid;place-items:center;
+  background:linear-gradient(140deg,var(--accent),var(--hot));color:#fff;font-size:12px;
+}
+.msg.bot .body{flex:1;min-width:0}
+.msg.bot p{margin:0 0 12px}
+.msg.bot p:last-child{margin-bottom:0}
+.caret{display:inline-block;width:8px;height:16px;background:var(--ink);vertical-align:-3px;animation:blink 1s steps(2) infinite;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+.dots span{
+  display:inline-block;width:6px;height:6px;margin-right:4px;border-radius:50%;background:var(--ink-3);
+  animation:bounce 1.2s infinite;
+}
+.dots span:nth-child(2){animation-delay:.15s}
+.dots span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+/* ---------- lyric sheet ---------- */
+.sheet{
+  border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:14px 0 16px;
+}
+.sheet-head{
+  padding:13px 16px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;
+  gap:10px;flex-wrap:wrap;background:var(--side);
+}
+.sheet-head b{font-size:15.5px;font-weight:600}
+.sheet-head .meta{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
 .flag{
-  display:inline-block;margin-left:8px;padding:1px 6px;border-radius:4px;
-  background:var(--hot);color:#fff;font-family:var(--mono);font-size:10px;font-weight:500;
-  letter-spacing:.06em;vertical-align:1px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:1px 6px;border-radius:4px;
+  background:var(--hot);color:#fff;
 }
-.stage{margin-top:22px;border-top:1px solid var(--line);padding-top:22px;display:none}
-.stage.on{display:block}
-.steps{display:flex;flex-direction:column;gap:10px;font-family:var(--mono);font-size:13px;color:var(--ink-3)}
-.step{display:flex;align-items:center;gap:10px;opacity:.35;transition:opacity .3s}
-.step.done{opacity:1;color:var(--ink-2)}
-.step .tick{width:14px;display:inline-block;color:var(--accent)}
-.track{
-  display:none;align-items:center;gap:18px;margin-top:22px;padding:18px;
-  border-radius:16px;background:var(--surface-2);
+.sheet-body{padding:14px 16px}
+.section-label{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-3);
+  margin:12px 0 5px;text-transform:uppercase;
 }
-.track.on{display:flex}
-.track-meta{flex:1;min-width:0}
-.track-meta b{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.track-meta span{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
-canvas.viz{width:100%;height:44px;display:block;margin-top:10px}
-.play{
-  width:46px;height:46px;flex:none;border-radius:50%;border:none;cursor:pointer;
-  background:var(--accent);color:#fff;display:grid;place-items:center;transition:transform .15s;
-}
-.play:hover{transform:scale(1.06)}
-.play svg{width:16px;height:16px;fill:currentColor}
+.section-label:first-child{margin-top:0}
+.line{padding:1px 0;font-size:15.5px;line-height:1.75;border-radius:5px;transition:color .15s}
+.line.dim{color:var(--ink-2)}
+.line.active{color:var(--ink);font-weight:500}
+.syl{transition:color .1s,background .1s;border-radius:4px;padding:0 .5px}
+.syl.sung{color:var(--accent)}
+.syl.now{background:var(--accent);color:#fff}
 
-/* ---------- features ---------- */
-.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-.card{
-  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-  padding:26px;transition:border-color .2s, transform .2s;
+/* ---------- create + player ---------- */
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.create{
+  display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;border:0;
+  background:var(--accent);color:#fff;font-size:14.5px;font-weight:600;cursor:pointer;
 }
-.card:hover{border-color:var(--ink-3);transform:translateY(-2px)}
-.card .ico{
-  width:38px;height:38px;border-radius:11px;background:var(--accent-soft);color:var(--accent);
-  display:grid;place-items:center;margin-bottom:16px;font-size:18px;
+.create:hover{filter:brightness(1.07)}
+.create:disabled{opacity:.6;cursor:default}
+.mini{
+  padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:transparent;
+  color:var(--ink-2);font-size:13.5px;cursor:pointer;
 }
-.card h3{font-size:17px;margin-bottom:8px}
-.card p{font-size:14.5px;color:var(--ink-2)}
+.mini:hover{background:var(--bubble);color:var(--ink)}
+select.mini{padding:8px 10px}
 
-/* ---------- how it works ---------- */
-.steps-grid{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));counter-reset:s}
-.hstep{counter-increment:s;position:relative;padding-top:26px;border-top:2px solid var(--line)}
-.hstep::before{
-  content:"0" counter(s);position:absolute;top:-14px;left:0;background:var(--bg);padding-right:12px;
-  font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:500;
+.player{
+  display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;
+  background:var(--side);border:1px solid var(--line);margin-top:14px;
 }
-.hstep h3{font-size:19px;margin-bottom:10px}
-.hstep p{font-size:14.5px;color:var(--ink-2)}
-.hstep code{font-family:var(--mono);font-size:13px;background:var(--surface-2);padding:2px 6px;border-radius:5px}
-
-/* ---------- examples ---------- */
-.ex{
-  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
-  padding:22px;display:flex;flex-direction:column;gap:14px;
+.pbtn{
+  width:44px;height:44px;flex:none;border-radius:50%;border:0;background:var(--accent);color:#fff;
+  display:grid;place-items:center;cursor:pointer;
 }
-.ex q{font-family:var(--serif);font-size:21px;line-height:1.32;display:block;quotes:'"' '"'}
-.ex .tags{display:flex;gap:6px;flex-wrap:wrap}
-.tag{font-family:var(--mono);font-size:11px;color:var(--ink-3);border:1px solid var(--line);padding:3px 8px;border-radius:999px}
-.ex-foot{display:flex;align-items:center;gap:14px;margin-top:auto}
-.ex-foot .play{width:38px;height:38px}
+.pbtn svg{width:16px;height:16px;fill:currentColor}
+.pinfo{flex:1;min-width:0}
+.pinfo b{display:block;font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pinfo .meta{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.bar{height:4px;border-radius:3px;background:var(--line);margin-top:9px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:3px}
+canvas.viz{width:64px;height:34px;flex:none}
 
-/* ---------- install ---------- */
-.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
-.badge{display:inline-flex;font-family:var(--mono);font-size:11.5px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
-.badge span{padding:4px 9px;background:var(--surface-2);color:var(--ink-2)}
-.badge span+span{background:var(--accent);color:#fff;border:0}
-.codeblock{position:relative;background:#14131A;border-radius:14px;padding:22px 22px;overflow-x:auto}
-:root:not([data-theme="light"]) .codeblock{border:1px solid var(--line)}
-.codeblock pre{margin:0;font-family:var(--mono);font-size:13.5px;line-height:1.85;color:#E8E6F0}
-.codeblock .c{color:#6F6C86}
-.codeblock .k{color:#8E80FF}
-.codeblock .s{color:#7FD1A8}
-.copy{
-  position:absolute;top:12px;right:12px;background:rgba(255,255,255,.08);color:#E8E6F0;
-  border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:5px 10px;
-  font-family:var(--mono);font-size:11.5px;cursor:pointer;
+/* ---------- composer ---------- */
+.composer-wrap{flex:none;padding:0 20px 18px;background:linear-gradient(to top,var(--bg) 72%,transparent)}
+.composer{
+  max-width:768px;margin:0 auto;border:1px solid var(--line);border-radius:26px;
+  background:var(--bg);padding:8px 8px 8px 18px;display:flex;align-items:flex-end;gap:8px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
 }
-.copy:hover{background:rgba(255,255,255,.16)}
-.two{display:grid;gap:36px;grid-template-columns:1.1fr .9fr;align-items:start}
-@media(max-width:860px){.two{grid-template-columns:1fr}}
+.composer:focus-within{border-color:var(--ink-3)}
+.composer textarea{
+  flex:1;border:0;outline:none;resize:none;background:transparent;color:var(--ink);
+  font-family:inherit;font-size:16px;line-height:1.5;max-height:180px;padding:9px 0;
+}
+.composer textarea::placeholder{color:var(--ink-3)}
+.sendbtn{
+  width:36px;height:36px;flex:none;border-radius:50%;border:0;background:var(--send);color:var(--send-ink);
+  display:grid;place-items:center;cursor:pointer;
+}
+.sendbtn:disabled{opacity:.28;cursor:default}
+.sendbtn svg{width:17px;height:17px;fill:currentColor}
+.disclaimer{max-width:768px;margin:8px auto 0;text-align:center;font-size:11.5px;color:var(--ink-3)}
 
-/* ---------- footer ---------- */
-footer{border-top:1px solid var(--line);padding:44px 0;color:var(--ink-3);font-size:14px}
-.foot-in{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
-.foot-in a{text-decoration:none}
-.foot-in a:hover{color:var(--ink)}
-.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+@media(max-width:860px){
+  .sidebar{position:absolute;z-index:30;height:100%;box-shadow:0 0 40px rgba(0,0,0,.18)}
+  .sidebar.hide{margin-left:-281px}
+  .menu{display:block}
+}
 </style>
 </head>
 <body>
+<div class="app">
 
-<header class="nav">
-  <div class="wrap nav-in">
-    <a class="logo" href="#top"><span class="logo-mark"><span></span></span> Muse.ai</a>
-    <nav class="nav-links">
-      <a href="#demo">Demo</a>
-      <a href="#features">Features</a>
-      <a href="#examples">Examples</a>
-      <a href="#install">Install</a>
-      <a class="btn btn-primary" href="https://github.com/your-username/muse-ai">★ Star on GitHub</a>
-    </nav>
-  </div>
-</header>
-
-<main id="top">
-
-  <!-- HERO -->
-  <div class="hero wrap">
-    <div class="pill"><span class="dot"></span> v0.4 · open source · MIT</div>
-    <h1>Describe a feeling.<br>Get back a <em>song</em>.</h1>
-    <p class="lede">Muse.ai turns a sentence, a memory or a half-formed idea into original music — melody, harmony, arrangement <em style="font-style:normal;color:var(--ink)">and a voice that sings it</em>, generated in seconds.</p>
-    <div class="hero-cta">
-      <a class="btn btn-accent" href="#demo">Try the demo</a>
-      <a class="btn btn-ghost" href="#install">Read the docs</a>
+  <aside class="sidebar hide" id="sidebar">
+    <div class="brand"><span class="mark">♪</span> Muse</div>
+    <button class="newbtn" id="newBtn">＋ New song</button>
+    <div class="hist-label">Songs</div>
+    <div class="hist" id="hist"><div class="empty">Nothing yet.</div></div>
+    <div class="side-foot">
+      Muse 0.4 · open source ·
+      <a href="https://github.com/your-username/muse">GitHub</a>
     </div>
-    <canvas id="heroWave" aria-hidden="true"></canvas>
-  </div>
+  </aside>
 
-  <!-- DEMO -->
-  <section id="demo">
-    <div class="wrap">
-      <div class="sec-head">
-        <div class="eyebrow">Live demo</div>
-        <h2>Write the prompt. Hear the result.</h2>
-        <p>This page runs a tiny in-browser synth — band and voice — so you can hear the shape of an idea instantly. The singer takes the vowels straight from your prompt. The real model returns full stems, sung lyrics and MIDI.</p>
-      </div>
-
-      <div class="demo">
-        <div class="demo-bar"><i></i><i></i><i></i><b>muse — prompt</b></div>
-        <div class="input-row">
-          <input id="prompt" type="text" placeholder="a rainy Tuesday in Lisbon, slow piano, tape hiss" aria-label="Music prompt">
-          <button class="btn btn-accent" id="gen">Generate</button>
-        </div>
-        <div class="voice-row">
-          <label for="voice">Voice</label>
-          <select id="voice">
-            <option value="auto" selected>Auto (from prompt)</option>
-            <option value="soprano">Soprano</option>
-            <option value="alto">Alto</option>
-            <option value="tenor">Tenor</option>
-            <option value="bass">Bass</option>
-            <option value="off">Instrumental</option>
-          </select>
-          <span class="hint">The voice sings the vowels of your own words.</span>
-        </div>
-        <div class="chips" id="chips"></div>
-        <p class="filter-note">No prompt filter. Swear at it, be blunt, write the ugly version of the sentence — profanity and raw language are read as tone and energy, not rejected. Explicit lyrics are allowed and flagged in the metadata, never bleeped.</p>
-
-        <div class="stage" id="stage">
-          <div class="steps" id="steps"></div>
-          <div class="track" id="track">
-            <button class="play" id="playMain" aria-label="Play generated track">
-              <svg viewBox="0 0 24 24" id="playIconMain"><path d="M8 5v14l11-7z"/></svg>
-            </button>
-            <div class="track-meta">
-              <b id="trackName">untitled</b>
-              <span id="trackInfo">—</span>
-              <span class="lyric" id="trackLyric"></span>
-              <canvas class="viz" id="vizMain"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
+  <main class="main">
+    <div class="topbar">
+      <button class="menu" id="menuBtn" aria-label="Menu">☰</button>
+      <span>Muse <span class="model">0.4</span></span>
+      <span class="tag">WRITES · SINGS</span>
     </div>
-  </section>
 
-  <!-- FEATURES -->
-  <section id="features">
-    <div class="wrap">
-      <div class="sec-head">
-        <div class="eyebrow">Features</div>
-        <h2>Built for people who hear it before they can play it.</h2>
-      </div>
-      <div class="grid">
-        <div class="card"><div class="ico">✍︎</div><h3>Prompt-native</h3><p>Plain language in, music out. "Nostalgic but not sad, 90 bpm, brushed drums" is a valid input.</p></div>
-        <div class="card"><div class="ico">🎤</div><h3>It sings</h3><p>Four registers — soprano, alto, tenor, bass — with vibrato, breath and portamento between notes. Ask for a lead vocal, a choir, or nothing but the band.</p></div>
-        <div class="card"><div class="ico">🎛</div><h3>Stems, not just mixes</h3><p>Every render ships separated tracks — drums, bass, keys, lead — ready for your DAW.</p></div>
-        <div class="card"><div class="ico">♪</div><h3>MIDI export</h3><p>Get the notes, not only the audio. Re-voice, re-tempo and re-arrange anything.</p></div>
-        <div class="card"><div class="ico">↻</div><h3>Iterative edits</h3><p>"Same idea, warmer, drop the drums after bar 16." Muse keeps the motif and changes the rest.</p></div>
-        <div class="card"><div class="ico">⌘</div><h3>CLI &amp; Python API</h3><p>One command locally, or three lines in a notebook. Batch a hundred variations overnight.</p></div>
-        <div class="card"><div class="ico">⚖︎</div><h3>Clean training data</h3><p>Trained on licensed and public-domain recordings. Output is yours, commercially usable.</p></div>
-        <div class="card"><div class="ico">🅴</div><h3>Unfiltered prompts</h3><p>Swearing, blunt phrasing and explicit lyrics all go through. Muse reads them as attitude and energy instead of refusing the prompt — and tags the render <code style="font-family:var(--mono);font-size:12.5px">explicit</code> so you can filter downstream if you need to.</p></div>
-        <div class="card"><div class="ico">↯</div><h3>Attitude mapping</h3><p>Harsh language pushes tempo up, harmony minor, and the mix dirtier — the same way a producer would read the room.</p></div>
-      </div>
+    <div class="scroll" id="scroll">
+      <div class="thread" id="thread"></div>
     </div>
-  </section>
 
-  <!-- HOW IT WORKS -->
-  <section id="how">
-    <div class="wrap">
-      <div class="sec-head">
-        <div class="eyebrow">How it works</div>
-        <h2>From a phrase to a finished arrangement.</h2>
+    <div class="composer-wrap">
+      <div class="composer">
+        <textarea id="input" rows="1" placeholder="What should the song be about?"></textarea>
+        <button class="sendbtn" id="send" disabled aria-label="Send">
+          <svg viewBox="0 0 24 24"><path d="M12 4l7 7h-4.5v9h-5v-9H5z"/></svg>
+        </button>
       </div>
-      <div class="steps-grid">
-        <div class="hstep">
-          <h3>Read the intent</h3>
-          <p>A language encoder maps your phrase to a musical intent vector: mood, energy, era, instrumentation, tempo range and harmonic colour.</p>
-        </div>
-        <div class="hstep">
-          <h3>Compose the structure</h3>
-          <p>A symbolic model writes the piece as notes first — key, chord movement, motif, form — so the result has an actual shape instead of a texture. Output is <code>.mid</code>.</p>
-        </div>
-        <div class="hstep">
-          <h3>Sing it</h3>
-          <p>A vocal model writes a lyric line for the melody and performs it in the register you asked for. In this browser demo the voice is a formant synthesizer singing the vowels of your own prompt — the real model sings written words.</p>
-        </div>
-        <div class="hstep">
-          <h3>Render and mix</h3>
-          <p>A neural synthesizer performs the score with the chosen instruments, the vocal is tuned and sat on top, then a mix stage masters it. You get <code>.wav</code>, stems and the MIDI.</p>
-        </div>
-      </div>
+      <div class="disclaimer">Muse writes the lyrics and sings them in your browser. Everything you hear is synthesized live — no audio files, no server.</div>
     </div>
-  </section>
-
-  <!-- EXAMPLES -->
-  <section id="examples">
-    <div class="wrap">
-      <div class="sec-head">
-        <div class="eyebrow">Examples</div>
-        <h2>Six prompts, six very different tracks.</h2>
-        <p>Previews below are generated live in your browser from the same seed logic — press play.</p>
-      </div>
-      <div class="grid" id="exGrid"></div>
-    </div>
-  </section>
-
-  <!-- INSTALL -->
-  <section id="install">
-    <div class="wrap">
-      <div class="sec-head">
-        <div class="eyebrow">Get started</div>
-        <h2>Running locally takes about a minute.</h2>
-      </div>
-      <div class="two">
-        <div>
-          <div class="badges">
-            <span class="badge"><span>license</span><span>MIT</span></span>
-            <span class="badge"><span>python</span><span>3.10+</span></span>
-            <span class="badge"><span>build</span><span>passing</span></span>
-            <span class="badge"><span>stars</span><span>4.2k</span></span>
-          </div>
-          <div class="codeblock">
-            <button class="copy" id="copyBtn">copy</button>
-            <pre id="code"><span class="c"># clone and install</span>
-git clone https://github.com/your-username/muse-ai.git
-<span class="k">cd</span> muse-ai
-pip install -e .
-
-<span class="c"># generate from a phrase</span>
-muse <span class="s">"a rainy Tuesday in Lisbon, slow piano, tape hiss"</span> \
-  --length 45s --voice alto --stems --out ./renders
-
-<span class="c"># write your own words and let it sing them</span>
-muse <span class="s">"last train home"</span> --voice tenor --lyrics ./words.txt
-muse <span class="s">"sunrise over an empty motorway"</span> --voice off  <span class="c"># instrumental</span>
-
-<span class="c"># prompts are never filtered; --tag-explicit only labels the output</span>
-muse <span class="s">"fuck this week, loud guitars, no chorus"</span> --tag-explicit
-
-<span class="c"># or from Python</span>
-<span class="k">from</span> muse <span class="k">import</span> Muse
-Muse().compose(<span class="s">"sunrise over an empty motorway"</span>, voice=<span class="s">"soprano"</span>).save(<span class="s">"drive.wav"</span>)</pre>
-          </div>
-        </div>
-        <div>
-          <div class="card" style="margin-bottom:20px">
-            <h3>Contributing</h3>
-            <p>Issues and PRs are welcome — especially new instrument packs, language support for non-English prompts, and evaluation datasets. Read <code style="font-family:var(--mono);font-size:13px">CONTRIBUTING.md</code> before opening a PR.</p>
-          </div>
-          <div class="card">
-            <h3>License</h3>
-            <p>MIT for the code, CC-BY for the pretrained weights. Music you generate belongs to you, with no attribution required.</p>
-          </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">
-            <a class="btn btn-primary" href="https://github.com/your-username/muse-ai">View repository</a>
-            <a class="btn btn-ghost" href="https://github.com/your-username/muse-ai/issues">Open an issue</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer>
-  <div class="wrap foot-in">
-    <div>© <span id="yr">2026</span> Muse.ai — released under the MIT License.</div>
-    <div class="foot-links">
-      <a href="https://github.com/your-username/muse-ai">GitHub</a>
-      <a href="#demo">Demo</a>
-      <a href="#install">Docs</a>
-      <a href="#top">Back to top</a>
-    </div>
-  </div>
-</footer>
+  </main>
+</div>
 
 <script>
-/* =========================================================
-   Muse.ai — front-end only. No backend, no audio files.
-   Everything you hear is synthesized with the Web Audio API
-   from a deterministic seed derived from the prompt text.
-   ========================================================= */
+/* ============================================================
+   Muse — an AI that writes a song from your idea and sings it.
+   Pure front-end: lyrics are generated from your words, and the
+   voice is a formant synthesizer driven by the Web Audio API.
+   ============================================================ */
 
-/* ---------- deterministic seeding ---------- */
-function hashString(str){
+/* ---------- deterministic randomness ---------- */
+function hashString(s){
   let h = 2166136261;
-  for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h,16777619); }
   return h >>> 0;
 }
-function rng(seed){
+function makeRng(seed){
+  let x = seed >>> 0;
   return function(){
-    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    x = x + 0x6D2B79F5 | 0;
+    let t = Math.imul(x ^ x >>> 15, 1 | x);
     t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
+const pick = (r, arr) => arr[Math.floor(r()*arr.length)];
+function shuffled(r, arr){
+  const a = arr.slice();
+  for (let i=a.length-1;i>0;i--){ const j = Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
 
-/* ---------- musical vocabulary ---------- */
+/* ---------- reading the idea ---------- */
+const STOP = new Set(("a an the about of for on in at to and or but with without my your his her its our their this that these those is are was were be been am i you he she it we they me him them us song about make write create sing sings singing music track tune song's please can could would should like want need very really just some any all more most into from as if then than so it's im i'm dont don't after before again still when while because over under through every never always another other gonna wanna maybe kinda sorta lot lots make made makes bit").split(" "));
+
+const DARK  = ['rain','sad','melancholy','night','lonely','alone','grief','winter','fog','slow','ghost','empty','cold','saudade','blue','miss','missing','goodbye','leaving','left','lost','tired','funeral','regret','last'];
+const BRIGHT= ['sun','happy','summer','dance','bright','joy','festival','beach','party','morning','sunrise','warm','gold','love','wedding','friends','home','birthday','free','laugh'];
+const AGGRO = ['fuck','shit','damn','hell','bitch','ass','piss','bastard','crap','angry','rage','furious','hate','scream','loud','riot','fight','wasted','fed up','pissed','revenge','burn'];
+
+function keywords(text){
+  return (text||'').toLowerCase()
+    .replace(/[^\p{L}\p{N}\s'-]/gu,' ')
+    .split(/\s+/)
+    .filter(w => w.length>2 && !STOP.has(w))
+    .slice(0,14);
+}
+/* Pull out the phrases the user actually wrote — words that sat next to
+   each other survive as a unit ("last train", "saying goodbye"), which
+   sings far better than a lone adjective dropped into a noun slot. */
+function phrasesOf(text){
+  const toks = (text||'').toLowerCase().replace(/[^\p{L}\p{N}\s'-]/gu,' ').split(/\s+/).filter(Boolean);
+  const out = []; let run = [];
+  const flush = ()=>{
+    for (let i=0;i<run.length-1;i++) out.push(run[i]+' '+run[i+1]);
+    run = [];
+  };
+  toks.forEach(w=>{ if (w.length>2 && !STOP.has(w)) run.push(w); else flush(); });
+  flush();
+  // a phrase that starts with a verb ("goes wrong") can't stand in for a noun
+  const VERBY = new Set("goes went come came comes keep keeps kept say says said get gets got give gives gave take takes took put puts make makes made pick picks does did doing had has have was were are is".split(" "));
+  return [...new Set(out)].filter(p => !VERBY.has(p.split(' ')[0])).slice(0,6);
+}
+
+/* the user's own words make the best title */
+const SMALL = new Set("a an the to in of at on and or for with from is it my your".split(" "));
+function titleFromIdea(text){
+  let words = (text||'').split(/[,—–-]|\bthat\b/)[0]
+    .replace(/[^\p{L}\p{N}\s'’]/gu,' ').split(/\s+/).filter(Boolean);
+  while (words.length && SMALL.has(words[0].toLowerCase())) words.shift();
+  words = words.slice(0,4);
+  while (words.length > 1 && SMALL.has(words[words.length-1].toLowerCase())) words.pop();
+  if (!words.length) return 'Untitled';
+  return words.map((w,i)=>{
+    const lw = w.toLowerCase();
+    return (i>0 && SMALL.has(lw)) ? lw : lw.charAt(0).toUpperCase()+lw.slice(1);
+  }).join(' ');
+}
+/* "a open road" → "an open road" */
+function aan(s){
+  return s.replace(/\ba (?=(?:[aeiou]|honest|hour))/gi, m => m[0]==='A' ? 'An ' : 'an ');
+}
+
+/* ---------- word banks ---------- */
+const BANK = {
+  dark: {
+    img:['rain','streetlight','platform','window','coat','ashtray','static','ceiling','ocean','December','headlights','hallway','payphone','kitchen light','last bus','empty chair','bruise','tide'],
+    verb:['hold','carry','bury','keep','count','follow','swallow','answer','forgive'],
+    ing:['holding','counting','waiting','driving','burning','leaving','pretending'],
+    adj:['quiet','cold','half-empty','honest','tired','blue','slow','open','unfinished','patient']
+  },
+  bright:{
+    img:['morning','kitchen','radio','sunlight','harbour','open road','front step','summer','back seat','first train','orange sky','cheap wine','tin roof','june'],
+    verb:['keep','carry','follow','hold','call','chase','deserve','begin'],
+    ing:['dancing','laughing','driving','running','singing','waking','falling'],
+    adj:['golden','loud','easy','wide open','ridiculous','young','bright','lucky','warm']
+  },
+  aggro:{
+    img:['broken glass','red light','front door','amplifier','engine','pavement','fist','siren','last straw','cheap lock','tab','bad year'],
+    verb:['break','burn','leave','shout','drop','take','forget','wreck'],
+    ing:['screaming','breaking','burning','leaving','driving','shouting'],
+    adj:['done','loud','wired','sick of it','out of patience','honest','ugly','finished']
+  }
+};
+
+const VERSE_LINES = {
+  dark:[
+    "I left the {img} on for you",
+    "Nobody warned me about the {kw}",
+    "There's a {adj} {img} in the back of my head",
+    "You said {kw}, and I heard everything else",
+    "I {verb} the {kw} like it still belongs to me",
+    "The {img} already knows my name",
+    "{ing} in the dark till the morning shows up",
+    "Every {kw} sounds like a door closing",
+    "I keep the {kw} where the {img} can't reach it",
+    "It's {adj} out here without the {kw}",
+    "Somebody's {ing} and it isn't me",
+    "The {img} is {adj} tonight and so am I"
+  ],
+  bright:[
+    "Woke up {ing} about the {kw}",
+    "The {img} is {adj} and I'm not arguing",
+    "You brought the {kw} and I brought the noise",
+    "Nobody here is {ing} alone tonight",
+    "I'd {verb} the {kw} all over again",
+    "There's a {adj} {img} with your name on it",
+    "We were {ing} before we knew the words",
+    "Give me the {kw} and a {adj} {img}",
+    "The {img} says yes and I believe it",
+    "Everything good started with the {kw}"
+  ],
+  aggro:[
+    "I'm done {ing} for the {kw}",
+    "Take the {kw}, I kept the {img}",
+    "Say it again to my face this time",
+    "You want the {adj} version? Here it is",
+    "I'll {verb} the {img} before I call you back",
+    "Nobody's {ing} — that's the whole problem",
+    "The {img} went first, the {kw} went after",
+    "I'm {adj} and I'm not lowering my voice",
+    "Keep the {kw}. I never wanted it clean"
+  ]
+};
+
+const CHORUS_LINES = {
+  dark:[
+    "So let the {kw} go",
+    "I'm not asking twice tonight",
+    "And the {img} keeps falling anyway",
+    "Say it slow, say it {adj}",
+    "I'll be here when the {img} runs out"
+  ],
+  bright:[
+    "So hold the {kw} up",
+    "We're not going home tonight",
+    "And the {img} keeps on going anyway",
+    "Say it loud, say it {adj}",
+    "I'll be here when the {img} comes back"
+  ],
+  aggro:[
+    "So burn the {kw} down",
+    "I'm not asking twice tonight",
+    "And the {img} can stay where it fell",
+    "Say it {adj} or don't say it at all",
+    "I'll be gone before the {img} lands"
+  ]
+};
+
+const GENRE = {
+  dark:['slow indie ballad','late-night piano song','ambient folk','slowcore','torch song'],
+  bright:['warm indie pop song','summer soul number','open-road anthem','folk-pop song'],
+  aggro:['punk song','industrial stomp','garage rock number','post-punk track']
+};
+
+/* ---------- the songwriter ---------- */
+function writeSong(idea, opts){
+  opts = opts || {};
+  const t = (idea||'').toLowerCase();
+  const seed = hashString(t + (opts.salt||''));
+  const r = makeRng(seed);
+
+  const aggro  = AGGRO.some(w=>t.includes(w));
+  const dark   = !aggro && DARK.some(w=>t.includes(w));
+  const bright = !aggro && !dark && BRIGHT.some(w=>t.includes(w));
+  let mood = aggro ? 'aggro' : dark ? 'dark' : bright ? 'bright' : (r()<0.55 ? 'dark' : 'bright');
+  if (opts.mood) mood = opts.mood;
+
+  const bank = BANK[mood];
+  const kws = keywords(idea);
+  // sort the user's words into the slots they actually fit
+  const gerunds = kws.filter(w => /ing$/.test(w) && w.length > 4);
+  // bare adjectives read badly in a noun slot ("every last sounds like…"),
+  // so they only get to appear inside one of the user's own phrases
+  const ADJ_ONLY = new Set("last first next big small old new good bad real whole only best worst same different hard easy long short late early own".split(" "));
+  const nouns   = kws.filter(w => !/ing$|ed$|ly$/.test(w) && !ADJ_ONLY.has(w))
+                     .map(w => w.replace(/['’]s$/,''));
+  const phrases = phrasesOf(idea);
+  // only multi-word gerund phrases lose their article ("the saying goodbye")
+  const gerundish = phrases.filter(p => /ing$/.test(p.split(' ')[0]) && p.includes(' '));
+  // phrases first — they carry the user's actual image
+  const kwPool  = [...phrases, ...nouns, ...kws, 'night','light','name']
+                    .filter((v,i,a)=>v && a.indexOf(v)===i);
+
+  // fill a template with the user's own words first, the bank second
+  let kwCursor = 0;
+  const nextKw = () => kwPool[(kwCursor++) % kwPool.length];
+  function fill(tpl){
+    return tpl
+      .replace(/\{kw\}/g,  () => nextKw())
+      .replace(/\{img\}/g, () => pick(r, bank.img))
+      .replace(/\{adj\}/g, () => pick(r, bank.adj))
+      .replace(/\{verb\}/g,() => pick(r, bank.verb))
+      .replace(/\{ing\}/g, () => (gerunds.length && r()<0.55) ? pick(r, gerunds) : pick(r, bank.ing));
+  }
+  // "without the saying goodbye" → "without saying goodbye"
+  function tidy(line){
+    gerundish.forEach(g=>{
+      line = line.replace(new RegExp('\\b(the|a) ' + g.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi'), g);
+    });
+    return aan(line).replace(/\s{2,}/g,' ').trim().replace(/^./, c=>c.toUpperCase());
+  }
+
+  const write = tpl => tidy(fill(tpl));
+  const vPool = shuffled(r, VERSE_LINES[mood]);
+  const verse1 = vPool.slice(0,4).map(write);
+  const verse2 = vPool.slice(4,8).map(write);
+  const cPool  = shuffled(r, CHORUS_LINES[mood]);
+  const chorus = [cPool[0], cPool[1], cPool[2], cPool[3] || cPool[0]].map(write);
+
+  // title: the user's own phrase, tidied
+  const title = titleFromIdea(idea);
+
+  // musical decisions
+  const keys = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+  const root = 48 + Math.floor(r()*10);
+  let bpm = mood==='aggro' ? Math.round(140+r()*22)
+          : mood==='bright' ? Math.round(96+r()*26)
+          : Math.round(66+r()*22);
+  if (/slow|ballad|lullab|quiet/.test(t)) bpm = Math.round(58+r()*14);
+  if (/fast|dance|club|run/.test(t))      bpm = Math.round(122+r()*26);
+  if (opts.bpm) bpm = opts.bpm;
+
+  const scale = mood==='aggro' ? 'minorPent'
+              : mood==='dark'  ? (r()<0.5 ? 'minorPent' : 'aeolian')
+              : (r()<0.5 ? 'majorPent' : 'lydian');
+
+  let register = opts.register;
+  if (!register){
+    if (/soprano|female|high voice|choir|girl/.test(t)) register='soprano';
+    else if (/tenor|male|man singing|guy/.test(t))      register='tenor';
+    else if (/bass|baritone|deep voice|monk/.test(t))   register='bass';
+    else register = mood==='aggro' ? 'tenor' : (r()<0.5 ? 'alto' : 'tenor');
+  }
+
+  return {
+    idea, seed, mood, aggro, title, bpm, scale, root, register,
+    keyName: keys[root%12] + (['minorPent','aeolian'].includes(scale) ? ' minor' : ' major'),
+    genre: pick(r, GENRE[mood]),
+    hook: chorus[0],
+    sections:[
+      { label:'Verse 1', lines:verse1 },
+      { label:'Chorus',  lines:chorus },
+      { label:'Verse 2', lines:verse2 },
+      { label:'Chorus',  lines:chorus }
+    ]
+  };
+}
+
+/* the little paragraph the assistant says before the lyrics */
+function describe(song){
+  const feel = {
+    dark:'keeps the verses close and quiet, then opens up on the chorus',
+    bright:'stays warm the whole way through and lifts on the chorus',
+    aggro:'starts annoyed and stops pretending by the second verse'
+  }[song.mood];
+  const voice = {soprano:'a soprano',alto:'an alto',tenor:'a tenor',bass:'a bass'}[song.register];
+  return aan(`Here's what I'm going to make: a ${song.genre} in ${song.keyName} at ${song.bpm} bpm, sung by ${voice}. `)
+       + `It's about ${song.idea.replace(/\.$/,'')} — the arrangement ${feel}, and the whole thing hangs on the line "${song.hook}". `
+       + `Two verses, the chorus twice. Here are the words:`;
+}
+/* ============================================================
+   2 · SINGING — syllables, arrangement, synthesis
+   ============================================================ */
+
 const SCALES = {
   minorPent:[0,3,5,7,10],
   majorPent:[0,2,4,7,9],
-  dorian:[0,2,3,5,7,9,10],
-  lydian:[0,2,4,6,7,9,11],
-  aeolian:[0,2,3,5,7,8,10]
+  aeolian:[0,2,3,5,7,8,10],
+  lydian:[0,2,4,6,7,9,11]
 };
-const DARK = ['rain','sad','melancholy','night','lonely','grief','winter','fog','slow','ghost','empty','cold','saudade','blue'];
-const BRIGHT = ['sun','happy','summer','dance','bright','joy','festival','beach','party','morning','sunrise','warm','gold'];
-/* Muse has no prompt filter: profanity and blunt language are treated as
-   musical information (energy + attitude), not as something to reject. */
-const AGGRO = ['fuck','shit','damn','hell','bitch','ass','piss','bastard','crap','angry','rage','furious','hate','scream','loud','riot','fight','wasted','fed up','pissed'];
-
-/* ---------- voice: formant table + syllable extraction ----------
-   Each vowel is three resonances (F1,F2,F3). Running a sawtooth
-   through three bandpass filters at those frequencies is the classic
-   cheap way to make an oscillator read as a human vowel.            */
+/* three resonances per vowel — a sawtooth through bandpass filters
+   tuned to these reads as a human vowel */
 const FORMANTS = {
   a:[730,1090,2440], e:[530,1840,2480], i:[270,2290,3010],
   o:[570,840,2410],  u:[300,870,2240],  m:[280,900,2200]
 };
 const REGISTERS = {
-  soprano:{ shift:1.22, oct:24, name:"soprano" },
-  alto:   { shift:1.10, oct:19, name:"alto"    },
-  tenor:  { shift:1.00, oct:12, name:"tenor"   },
-  bass:   { shift:0.86, oct:5,  name:"bass"    }
+  soprano:{shift:1.24, oct:26, name:'soprano'},
+  alto:   {shift:1.10, oct:21, name:'alto'},
+  tenor:  {shift:1.00, oct:14, name:'tenor'},
+  bass:   {shift:0.86, oct:7,  name:'bass'}
 };
-const VOWEL_MAP = { a:'a', á:'a', à:'a', ã:'a', â:'a', e:'e', é:'e', ê:'e',
-                    i:'i', í:'i', y:'i', o:'o', ó:'o', ô:'o', õ:'o', u:'u', ú:'u' };
+const VOWELS = {a:'a',á:'a',à:'a',ã:'a',â:'a',e:'e',é:'e',ê:'e',i:'i',í:'i',y:'i',o:'o',ó:'o',ô:'o',õ:'o',u:'u',ú:'u'};
+const isVowel = c => !!VOWELS[c];
+const mtof = m => 440 * Math.pow(2,(m-69)/12);
 
-/* Pull a singable syllable line out of whatever the user typed.
-   Words become vowel nuclei; anything unsingable falls back to humming. */
-function syllabify(text){
-  const words = (text||'').toLowerCase().replace(/[^\p{L}\s']/gu,' ').split(/\s+/).filter(Boolean);
+/* split a word into singable syllables */
+function splitSyl(word){
+  const c=[...word.toLowerCase()], parts=[]; let cur='';
+  for (let i=0;i<c.length;i++){
+    cur += c[i];
+    if (isVowel(c[i])){
+      while (i+1<c.length && isVowel(c[i+1])) cur += c[++i];       // diphthong
+      if (i+2<c.length && !isVowel(c[i+1]) && isVowel(c[i+2])){    // V-CV
+        parts.push(cur); cur='';
+      } else if (i+3<c.length && !isVowel(c[i+1]) && !isVowel(c[i+2]) && isVowel(c[i+3])){
+        cur += c[++i]; parts.push(cur); cur='';                    // VC-CV
+      }
+    }
+  }
+  if (cur){ if (parts.length) parts[parts.length-1]+=cur; else parts.push(cur); }
+  return parts.length ? parts : [word];
+}
+function vowelOf(part){
+  for (const ch of part.toLowerCase()) if (VOWELS[ch]) return VOWELS[ch];
+  return 'm';
+}
+/* a whole line → [{txt, v}] keeping the original spelling for display */
+function syllabifyLine(text){
   const out = [];
-  words.forEach(w=>{
-    const vowels = [...w].map(c=>VOWEL_MAP[c]).filter(Boolean);
-    if (!vowels.length){ out.push({v:'m', txt:'mm'}); return; }
-    // one syllable per vowel group, carrying the leading consonant for display
-    let idx = 0;
-    vowels.forEach(v=>{
-      idx = [...w].findIndex((c,k)=>k>=idx && VOWEL_MAP[c]===v) + 1;
-      const lead = w[idx-2] && !VOWEL_MAP[w[idx-2]] ? w[idx-2] : '';
-      out.push({ v, txt: (lead + v) });
+  text.split(/(\s+)/).forEach(tok=>{
+    if (!tok) return;
+    if (/^\s+$/.test(tok)){ if (out.length) out[out.length-1].txt += tok; return; }
+    const m = tok.match(/^([^\p{L}]*)([\p{L}'’-]+)([^\p{L}]*)$/u);
+    if (!m){ if (out.length) out[out.length-1].txt += tok; else out.push({txt:tok, v:'m'}); return; }
+    const [, pre, core, post] = m;
+    const parts = splitSyl(core);
+    let cursor = 0;
+    parts.forEach((p, i)=>{
+      const raw = core.substr(cursor, p.length); cursor += p.length;
+      out.push({ txt:(i===0?pre:'') + raw + (i===parts.length-1?post:''), v:vowelOf(p) });
     });
   });
-  return out.length ? out.slice(0, 24) : [{v:'a', txt:'ah'}];
+  return out;
 }
 
-function readPrompt(text){
-  const t = (text||'').toLowerCase();
-  const seed = hashString(t || 'muse');
-  const r = rng(seed);
-  const aggro = AGGRO.some(w=>t.includes(w));
-  const dark = DARK.some(w=>t.includes(w)) || aggro;
-  const bright = BRIGHT.some(w=>t.includes(w)) && !aggro;
-  let scale;
-  if (aggro) scale = 'minorPent';
-  else if (dark) scale = r()<0.5 ? 'minorPent' : 'aeolian';
-  else if (bright) scale = r()<0.5 ? 'majorPent' : 'lydian';
-  else scale = ['dorian','minorPent','majorPent','lydian'][Math.floor(r()*4)];
-
-  let bpm = Math.round(72 + r()*56);
-  if (/slow|ballad|ambient|lullab/.test(t)) bpm = Math.round(58 + r()*18);
-  if (/fast|dance|drum|techno|run|chase/.test(t)) bpm = Math.round(120 + r()*30);
-  if (aggro) bpm = Math.round(138 + r()*24);
-
-  const root = 48 + Math.floor(r()*10);           // MIDI note
-  const keys = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
-
-  // the voice: register can be named in the prompt, otherwise it follows the mood
-  let register = null;
-  if (/soprano|female|high voice|girl|choir/.test(t)) register = 'soprano';
-  else if (/alto|mezzo|woman singing/.test(t)) register = 'alto';
-  else if (/tenor|male|man singing|guy/.test(t)) register = 'tenor';
-  else if (/bass|baritone|deep voice|low voice|monk/.test(t)) register = 'bass';
-  const instrumentalOnly = /instrumental|no vocals|no singing|no voice/.test(t);
-
-  return {
-    seed, r: rng(seed), scale, bpm, root,
-    keyName: keys[root%12] + (dark || scale==='minorPent' || scale==='aeolian' ? ' minor' : ' major'),
-    hats: !/ambient|lullab|piano only|solo/.test(t),
-    dark, aggro,
-    syllables: syllabify(text),
-    register, instrumentalOnly,
-    // vibrato gets wider and later on slow, sad material; tight and hard on aggro
-    vibRate: aggro ? 6.4 : 5.0 + r()*0.8,
-    vibDepth: aggro ? 0.006 : 0.012 + r()*0.006
-  };
+/* ---------- arrangement: turn the lyric sheet into scheduled events ---------- */
+function scaleNote(root, sc, deg){
+  const oct = Math.floor(deg/sc.length);
+  return root + sc[((deg%sc.length)+sc.length)%sc.length] + 12*oct;
 }
-const mtof = m => 440 * Math.pow(2, (m-69)/12);
+function arrange(song){
+  const sc    = SCALES[song.scale];
+  const beat  = 60/song.bpm;
+  const step  = beat/2;                 // eighth note
+  const barD  = beat*4;
+  const reg   = REGISTERS[song.register] || REGISTERS.alto;
+  const r     = makeRng(song.seed ^ 0x9e3779b9);
+  const INTRO = 2, LINE_BARS = 2, OUTRO = 2;
 
-/* ---------- audio engine (one voice at a time) ---------- */
+  // bar-by-bar plan
+  const plan = [];
+  for (let i=0;i<INTRO;i++) plan.push({kind:'intro'});
+  song.sections.forEach((sec, si)=>{
+    const chorus = /chorus/i.test(sec.label);
+    sec.lines.forEach((text, li)=>{
+      plan.push({kind:'line', si, li, text, chorus});
+      plan.push({kind:'hold', chorus});
+    });
+  });
+  for (let i=0;i<OUTRO;i++) plan.push({kind:'outro'});
+
+  const events = [], lines = [];
+  const vibRate  = song.aggro ? 6.3 : 5.1 + r()*0.7;
+  const vibDepth = song.aggro ? 0.006 : 0.013;
+  let lastVocal = null;
+
+  plan.forEach((bar, b)=>{
+    const t0  = b * barD;
+    const deg = (bar.chorus ? [3,4,0,5] : [0,5,3,4])[b % 4];
+    const chordRoot = scaleNote(song.root, sc, deg);
+    const full = bar.kind !== 'intro' && bar.kind !== 'outro';
+
+    // pad
+    [0,2,4].forEach((k,n)=>{
+      events.push({t:t0, kind:'tone', f:mtof(scaleNote(chordRoot, sc, deg+k) + (n===2?12:0)),
+                   dur:barD*0.96, type:'triangle', gain:0.05, filt:1600});
+    });
+    // bass
+    events.push({t:t0,          kind:'tone', f:mtof(chordRoot-12), dur:beat*1.6, type:'sawtooth', gain:0.15, filt:320});
+    events.push({t:t0+beat*2,   kind:'tone', f:mtof(chordRoot-12), dur:beat*1.6, type:'sawtooth', gain:0.13, filt:320});
+    // drums
+    if (full || bar.kind==='outro'){
+      for (let s=0;s<8;s++){
+        const t = t0 + s*step;
+        if (s%2===1) events.push({t, kind:'noise', dur:0.06, gain:song.aggro?0.075:0.045});
+        if (s===0 || s===4) events.push({t, kind:'tone', f:70, dur:0.17, type:'sine', gain:song.aggro?0.34:0.26, filt:200});
+        if ((song.aggro || bar.chorus) && (s===2 || s===6)) events.push({t, kind:'noise', dur:0.2, gain:0.1});
+      }
+    }
+    // instrumental hook in the intro / outro, where no one is singing
+    if (!full){
+      for (let s=0;s<8;s+=2){
+        if (r()<0.7){
+          const n = scaleNote(song.root+12, sc, deg + Math.floor(r()*5));
+          events.push({t:t0+s*step, kind:'tone', f:mtof(n), dur:step*1.6,
+                       type: song.aggro?'square':'triangle', gain:0.1, filt:4000});
+        }
+      }
+    }
+
+    // ---- the vocal line ----
+    if (bar.kind === 'line'){
+      const syls = syllabifyLine(bar.text);
+      const span = LINE_BARS * 8;                       // eighths available
+      const unit = syls.length > 12 ? span/(syls.length+2) : 1;
+      const contour = bar.chorus ? [4,3,4,5,4,5,3,4,5,4,3,4,5,3,4,5]
+                                 : [0,1,2,1,0,2,3,2,1,2,0,1,2,1,0,2];
+      const lineSyls = [];
+      syls.forEach((syl, k)=>{
+        const t = t0 + (1 + k*unit) * step;
+        const last = k === syls.length-1;
+        const dur  = step * (last ? Math.max(2, unit*3) : unit*0.96);
+        const note = scaleNote(song.root + reg.oct - 12, sc, deg + contour[k % contour.length]);
+        const f = mtof(note);
+        events.push({t, kind:'voice', f, dur, vowel:syl.v, gain: song.aggro?0.23:0.2,
+                     reg:song.register, vibRate, vibDepth, from:lastVocal});
+        lineSyls.push({txt:syl.txt, t, dur});
+        lastVocal = f;
+      });
+      lines.push({si:bar.si, li:bar.li, text:bar.text, syls:lineSyls,
+                  t0:lineSyls[0].t, t1:t0 + LINE_BARS*barD});
+    }
+  });
+
+  events.sort((a,b)=>a.t-b.t);
+  return { events, lines, dur: plan.length*barD + 0.6, song };
+}
+
+/* ---------- audio engine ---------- */
 const Engine = (()=>{
   let ctx, master, analyser, data;
-  let timer=null, nodes=[], current=null, onStop=null;
+  let nodes=[], timer=null, startAt=0, idx=0, arr=null, cur=null, cb={};
 
-  function init(){
+  function ensure(){
     if (ctx) return;
     ctx = new (window.AudioContext||window.webkitAudioContext)();
-    master = ctx.createGain(); master.gain.value = 0.6;
+    master = ctx.createGain(); master.gain.value = 0.62;
     analyser = ctx.createAnalyser(); analyser.fftSize = 512;
     data = new Uint8Array(analyser.frequencyBinCount);
     master.connect(analyser); analyser.connect(ctx.destination);
   }
 
-  function tone(freq, t, dur, type, gain, filter){
+  function tone(e, at){
     const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = type; o.frequency.value = freq;
-    let last = g;
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(gain, t + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.type = e.type; o.frequency.value = e.f;
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(e.gain, at+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, at+e.dur);
     o.connect(g);
-    if (filter){
-      const f = ctx.createBiquadFilter();
-      f.type='lowpass'; f.frequency.value = filter;
-      g.connect(f); last = f;
-    }
-    last.connect(master);
-    o.start(t); o.stop(t + dur + 0.05);
+    let out = g;
+    if (e.filt){ const f = ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=e.filt; g.connect(f); out=f; }
+    out.connect(master);
+    o.start(at); o.stop(at+e.dur+0.05);
     nodes.push(o);
   }
 
-  /* ---- the singing voice ----
-     glottal source (sawtooth + vibrato + breath) → three formant
-     bandpass filters → envelope. Consonant-ish transient on attack,
-     portamento from the previous note so lines join up like a phrase. */
-  function sing(freq, t, dur, vowel, gain, spec, fromFreq){
-    const reg = REGISTERS[spec.register] || REGISTERS.alto;
-    const shift = reg.shift;
-
-    const osc = ctx.createOscillator();
-    osc.type = 'sawtooth';
-    if (fromFreq && Math.abs(fromFreq - freq) > 1){
-      osc.frequency.setValueAtTime(fromFreq, t);
-      osc.frequency.exponentialRampToValueAtTime(freq, t + Math.min(0.09, dur*0.25)); // portamento
-    } else {
-      osc.frequency.setValueAtTime(freq, t);
-    }
-
-    // vibrato, faded in so short notes stay straight
-    const lfo = ctx.createOscillator(); lfo.type = 'sine';
-    lfo.frequency.value = spec.vibRate;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.setValueAtTime(0, t);
-    lfoGain.gain.linearRampToValueAtTime(freq * spec.vibDepth, t + Math.min(0.35, dur*0.6));
-    lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
-    lfo.start(t); lfo.stop(t + dur + 0.1);
-
-    // breath: filtered noise mixed under the tone
-    const bLen = Math.max(1, Math.floor(ctx.sampleRate * (dur + 0.05)));
-    const bBuf = ctx.createBuffer(1, bLen, ctx.sampleRate);
-    const bCh = bBuf.getChannelData(0);
-    for (let i=0;i<bLen;i++) bCh[i] = (Math.random()*2-1);
-    const breath = ctx.createBufferSource(); breath.buffer = bBuf;
-    const bGain = ctx.createGain();
-    bGain.gain.setValueAtTime(gain*0.5, t);
-    bGain.gain.exponentialRampToValueAtTime(0.0001, t + Math.min(0.18, dur));
-
-    // shared amplitude envelope (a singer's attack, not a piano's)
-    const env = ctx.createGain();
-    env.gain.setValueAtTime(0.0001, t);
-    env.gain.exponentialRampToValueAtTime(gain, t + Math.min(0.09, dur*0.3));
-    env.gain.setValueAtTime(gain, t + dur*0.72);
-    env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-
-    osc.connect(env);
-    breath.connect(bGain); bGain.connect(env);
-
-    const mix = ctx.createGain(); mix.gain.value = 1;
-    const F = FORMANTS[vowel] || FORMANTS.a;
-    const amps = [1, 0.6, 0.34];
-    F.forEach((f, i)=>{
-      const bp = ctx.createBiquadFilter();
-      bp.type = 'bandpass';
-      bp.frequency.value = Math.min(f * shift, ctx.sampleRate/2 - 100);
-      bp.Q.value = 7 + i*4;
-      const g = ctx.createGain(); g.gain.value = amps[i];
-      env.connect(bp); bp.connect(g); g.connect(mix);
-    });
-    // a little raw tone through so it doesn't sound like a filter sweep
-    const dry = ctx.createGain(); dry.gain.value = 0.14;
-    env.connect(dry); dry.connect(mix);
-
-    mix.connect(master);
-    osc.start(t); osc.stop(t + dur + 0.1);
-    breath.start(t);
-    nodes.push(osc, lfo, breath);
-  }
-
-  function noise(t, dur, gain){
-    const len = Math.floor(ctx.sampleRate * dur);
+  function noise(e, at){
+    const len = Math.max(1, Math.floor(ctx.sampleRate*e.dur));
     const buf = ctx.createBuffer(1, len, ctx.sampleRate);
     const ch = buf.getChannelData(0);
-    for (let i=0;i<len;i++) ch[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 3);
+    for (let i=0;i<len;i++) ch[i] = (Math.random()*2-1)*Math.pow(1-i/len,3);
     const s = ctx.createBufferSource(); s.buffer = buf;
-    const g = ctx.createGain(); g.gain.value = gain;
-    const f = ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value = 6000;
+    const g = ctx.createGain(); g.gain.value = e.gain;
+    const f = ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=5200;
     s.connect(f); f.connect(g); g.connect(master);
-    s.start(t); nodes.push(s);
+    s.start(at); nodes.push(s);
   }
 
-  function play(id, spec, stopped){
-    if (current === id){ stop(); return false; }
-    stop();
-    init();
-    if (ctx.state === 'suspended') ctx.resume();
-    current = id; onStop = stopped;
+  /* the voice: glottal saw + breath → three formant bandpasses → envelope */
+  function voice(e, at){
+    const reg = REGISTERS[e.reg] || REGISTERS.alto;
+    const o = ctx.createOscillator(); o.type='sawtooth';
+    if (e.from && Math.abs(e.from-e.f) > 1){
+      o.frequency.setValueAtTime(e.from, at);
+      o.frequency.exponentialRampToValueAtTime(e.f, at+Math.min(0.08, e.dur*0.25)); // portamento
+    } else o.frequency.setValueAtTime(e.f, at);
 
-    const p = spec, sc = SCALES[p.scale], step = 60 / p.bpm / 2; // eighth notes
-    const bars = 8, stepsPerBar = 8;
-    const start = ctx.currentTime + 0.08;
+    const lfo = ctx.createOscillator(); lfo.frequency.value = e.vibRate;
+    const lg = ctx.createGain();
+    lg.gain.setValueAtTime(0, at);
+    lg.gain.linearRampToValueAtTime(e.f*e.vibDepth, at+Math.min(0.3, e.dur*0.7));
+    lfo.connect(lg); lg.connect(o.frequency);
+    lfo.start(at); lfo.stop(at+e.dur+0.08);
 
-    const voiceOn = !p.instrumentalOnly && p.register !== 'off';
-    const reg = REGISTERS[p.register] || REGISTERS.alto;
-    let sylIdx = 0, lastVocal = null;
+    const bl = Math.max(1, Math.floor(ctx.sampleRate*Math.min(0.2, e.dur)));
+    const bb = ctx.createBuffer(1, bl, ctx.sampleRate);
+    const bc = bb.getChannelData(0);
+    for (let i=0;i<bl;i++) bc[i] = Math.random()*2-1;
+    const breath = ctx.createBufferSource(); breath.buffer = bb;
+    const bg = ctx.createGain();
+    bg.gain.setValueAtTime(e.gain*0.45, at);
+    bg.gain.exponentialRampToValueAtTime(0.0001, at+Math.min(0.16, e.dur));
 
-    // schedule the whole loop up front (short enough to be safe)
-    for (let bar=0; bar<bars; bar++){
-      const barT = start + bar * stepsPerBar * step;
-      const degree = [0,5,3,4][bar % 4];
-      const chordRoot = p.root + sc[degree % sc.length];
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, at);
+    env.gain.exponentialRampToValueAtTime(e.gain, at+Math.min(0.07, e.dur*0.3));
+    env.gain.setValueAtTime(e.gain, at+e.dur*0.7);
+    env.gain.exponentialRampToValueAtTime(0.0001, at+e.dur);
 
-      // pad / chord
-      [0,2,4].forEach((k,n)=>{
-        tone(mtof(chordRoot + sc[(degree+k) % sc.length] + (n===2?12:0)),
-             barT, step*stepsPerBar*0.95, 'triangle', 0.055, 1600);
-      });
-      // bass
-      tone(mtof(chordRoot - 12), barT, step*3.2, 'sawtooth', 0.16, 320);
-      tone(mtof(chordRoot - 12), barT + step*4, step*3.2, 'sawtooth', 0.13, 320);
+    o.connect(env); breath.connect(bg); bg.connect(env);
 
-      // melody
-      for (let s=0; s<stepsPerBar; s++){
-        const t = barT + s*step;
-        if (p.r() < (s%2===0 ? 0.78 : 0.42)){
-          const oct = p.r() < 0.22 ? 12 : 0;
-          const note = p.root + 12 + sc[Math.floor(p.r()*sc.length)] + oct;
-          const leadType = p.aggro ? 'square' : (p.dark ? 'sine' : 'triangle');
-          const leadGain = (p.aggro ? 0.11 : 0.14) * (voiceOn ? 0.5 : 1); // make room for the voice
-          tone(mtof(note), t, step * (p.r()<0.25 ? 2.2 : 1.1), leadType, leadGain, p.aggro ? 2600 : 4200);
-        }
-        if (p.hats && s % 2 === 1) noise(t, 0.06, p.aggro ? 0.09 : 0.05);
-        if (p.hats && (s === 0 || s === 4)) tone(70, t, 0.16, 'sine', p.aggro ? 0.38 : 0.28, 200);
-        if (p.aggro && s === 4) noise(t, 0.22, 0.12); // snare-ish backbeat
-      }
+    const mix = ctx.createGain();
+    (FORMANTS[e.vowel]||FORMANTS.a).forEach((f,i)=>{
+      const bp = ctx.createBiquadFilter(); bp.type='bandpass';
+      bp.frequency.value = Math.min(f*reg.shift, ctx.sampleRate/2-100);
+      bp.Q.value = 7 + i*4;
+      const g = ctx.createGain(); g.gain.value = [1,0.6,0.34][i];
+      env.connect(bp); bp.connect(g); g.connect(mix);
+    });
+    const dry = ctx.createGain(); dry.gain.value = 0.13;
+    env.connect(dry); dry.connect(mix);
+    mix.connect(master);
 
-      /* ---- vocal phrase for this bar ----
-         Sung notes are chord tones so the line stays consonant, the
-         syllables come straight from the words you typed, and each
-         phrase ends on a held note. */
-      if (voiceOn){
-        const patterns = [[0,2,4,6],[0,3,6],[0,4],[0,2,5],[2,4,6]];
-        const pat = patterns[(bar + p.seed) % patterns.length];
-        pat.forEach((s, n)=>{
-          if (p.r() > 0.88) return;                       // leave a little space
-          const t = barT + s*step;
-          const shape = [0,2,4,1,3][n % 5];
-          const note = chordRoot + sc[(degree + shape) % sc.length]
-                     + reg.oct - 12 + (p.r() < 0.14 ? 12 : 0);
-          const f = mtof(note);
-          const syl = p.syllables[sylIdx++ % p.syllables.length];
-          const last = n === pat.length - 1;
-          const dur = step * (last ? 2.8 : 1.7);
-          sing(f, t, dur, syl.v, p.aggro ? 0.22 : 0.19, p, lastVocal);
-          lastVocal = f;
-        });
-      }
+    o.start(at); o.stop(at+e.dur+0.08);
+    breath.start(at);
+    nodes.push(o, lfo, breath);
+  }
+
+  function tick(){
+    if (!arr) return;
+    const now = ctx.currentTime;
+    while (idx < arr.events.length && startAt + arr.events[idx].t < now + 0.35){
+      const e = arr.events[idx++];
+      const at = Math.max(now, startAt + e.t);
+      if (e.kind === 'voice') voice(e, at);
+      else if (e.kind === 'noise') noise(e, at);
+      else tone(e, at);
     }
+    if (now > startAt + arr.dur){ stop(); }
+  }
 
-    const total = bars * stepsPerBar * step * 1000 + 400;
-    timer = setTimeout(()=>{ stop(); }, total);
+  function play(id, arrangement, callbacks){
+    if (cur === id){ stop(); return false; }
+    stop(); ensure();
+    if (ctx.state === 'suspended') ctx.resume();
+    arr = arrangement; cur = id; cb = callbacks || {};
+    idx = 0; startAt = ctx.currentTime + 0.12;
+    timer = setInterval(tick, 40);
+    tick();
     return true;
   }
 
   function stop(){
-    if (timer){ clearTimeout(timer); timer = null; }
-    nodes.forEach(n=>{ try{ n.stop(); }catch(e){} });
+    if (timer){ clearInterval(timer); timer=null; }
+    nodes.forEach(n=>{ try{ n.stop(); }catch(_){} });
     nodes = [];
-    if (onStop) onStop();
-    onStop = null; current = null;
+    const done = cb.onEnd; cur = null; arr = null; cb = {};
+    if (done) done();
   }
 
-  function levels(){
-    if (!analyser) return null;
-    analyser.getByteFrequencyData(data);
-    return data;
-  }
-
-  return { play, stop, levels, get current(){ return current; } };
-})();
-
-/* ---------- canvas visualizers ---------- */
-function fitCanvas(c){
-  const dpr = window.devicePixelRatio || 1;
-  const r = c.getBoundingClientRect();
-  c.width = Math.max(1, r.width * dpr);
-  c.height = Math.max(1, r.height * dpr);
-  const ctx = c.getContext('2d');
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  return ctx;
-}
-function accent(){ return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); }
-function lineColor(){ return getComputedStyle(document.documentElement).getPropertyValue('--line').trim(); }
-
-const vizzes = []; // {canvas, id}
-function registerViz(canvas, id){ vizzes.push({canvas, id}); }
-
-function drawViz(){
-  vizzes.forEach(({canvas, id})=>{
-    const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    const w = canvas.width / dpr, h = canvas.height / dpr;
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.clearRect(0,0,w,h);
-    const active = Engine.current === id;
-    const d = active ? Engine.levels() : null;
-    const bars = 44, gap = 2, bw = Math.max(1, (w - gap*(bars-1)) / bars);
-    for (let i=0;i<bars;i++){
-      let v;
-      if (d){ v = d[Math.floor(i * d.length / bars / 2.2)] / 255; v = Math.pow(v, 1.4); }
-      else v = 0.06;
-      const bh = Math.max(2, v * h);
-      ctx.fillStyle = active ? accent() : lineColor();
-      ctx.globalAlpha = active ? (0.35 + v*0.65) : 1;
-      const x = i*(bw+gap);
-      ctx.beginPath();
-      const rr = Math.max(0, Math.min(bw/2, 2));
-      ctx.roundRect ? ctx.roundRect(x, (h-bh)/2, bw, bh, rr) : ctx.rect(x, (h-bh)/2, bw, bh);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  });
-  requestAnimationFrame(drawViz);
-}
-
-/* hero waveform (idle animation) */
-(function heroWave(){
-  const c = document.getElementById('heroWave');
-  let ctx = fitCanvas(c);
-  window.addEventListener('resize', ()=>{ ctx = fitCanvas(c); });
-  let t = 0;
-  (function loop(){
-    const dpr = window.devicePixelRatio || 1;
-    const w = c.width/dpr, h = c.height/dpr;
-    ctx.clearRect(0,0,w,h);
-    const bars = Math.max(8, Math.floor(w/9));
-    const bw = 3, gap = Math.max(0, (w - bars*bw)/(bars-1));
-    for (let i=0;i<bars;i++){
-      const p = i/bars;
-      const env = Math.sin(p*Math.PI);
-      const v = (Math.sin(p*11 + t) * 0.5 + Math.sin(p*23 - t*1.7) * 0.3 + Math.sin(p*4 + t*0.6) * 0.4);
-      const bh = Math.max(3, Math.abs(v) * env * h * 0.85);
-      const g = ctx.createLinearGradient(0,(h-bh)/2,0,(h+bh)/2);
-      g.addColorStop(0, accent()); g.addColorStop(1, accent());
-      ctx.fillStyle = g;
-      ctx.globalAlpha = 0.18 + env*0.5;
-      const x = i*(bw+gap);
-      ctx.beginPath();
-      ctx.roundRect ? ctx.roundRect(x,(h-bh)/2,bw,bh,2) : ctx.rect(x,(h-bh)/2,bw,bh);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    t += 0.03;
-    requestAnimationFrame(loop);
-  })();
-})();
-
-/* ---------- demo box ---------- */
-const SUGGESTIONS = [
-  "a rainy Tuesday in Lisbon, slow piano, tape hiss",
-  "sunrise over an empty motorway",
-  "the last five minutes of a good party",
-  "found a letter from 1997",
-  "cold open, synth arpeggio, 128 bpm",
-  "fuck this week, loud guitars, no chorus",
-  "angry breakup letter set to a drum machine",
-  "shitty little town, big dreams, banjo",
-  "waking up at 4am and giving up on sleep",
-  "two people not saying the obvious thing",
-  "a heist that goes wrong in the third act",
-  "grandmother's kitchen, summer, radio in the background",
-  "hell of a hangover, organ, 60 bpm",
-  "last train, empty platform, one saxophone",
-  "credits roll, everyone survived"
-];
-const chipsEl = document.getElementById('chips');
-SUGGESTIONS.forEach(s=>{
-  const b = document.createElement('button');
-  b.className='chip'; b.type='button'; b.textContent = s;
-  b.onclick = ()=>{ document.getElementById('prompt').value = s; generate(); };
-  chipsEl.appendChild(b);
-});
-
-const STEP_TEXT = [
-  "parsing intent · mood, energy, instrumentation",
-  "choosing key and tempo",
-  "composing motif and chord movement",
-  "writing the lyric line",
-  "rendering performance · band + voice",
-  "mixing · done"
-];
-
-let mainSpec = null, genToken = 0;
-const playIconMain = document.getElementById('playIconMain');
-const PLAY_PATH = "M8 5v14l11-7z", PAUSE_PATH = "M6 5h4v14H6zm8 0h4v14h-4z";
-
-function setIcon(el, playing){ el.querySelector('path').setAttribute('d', playing ? PAUSE_PATH : PLAY_PATH); }
-
-function generate(){
-  const text = document.getElementById('prompt').value.trim() || SUGGESTIONS[0];
-  Engine.stop();
-  const token = ++genToken;
-  const stage = document.getElementById('stage');
-  const steps = document.getElementById('steps');
-  const track = document.getElementById('track');
-  stage.classList.add('on'); track.classList.remove('on');
-  steps.innerHTML = '';
-  STEP_TEXT.forEach(s=>{
-    const d = document.createElement('div');
-    d.className='step';
-    d.innerHTML = '<span class="tick">›</span><span>'+s+'</span>';
-    steps.appendChild(d);
-  });
-  const els = [...steps.children];
-  els.forEach((el, i)=>{
-    setTimeout(()=>{
-      if (token !== genToken) return;
-      el.classList.add('done');
-      el.querySelector('.tick').textContent = '✓';
-      if (i === els.length-1){
-        mainSpec = specFor(text);
-        const voiceLabel = mainSpec.instrumentalOnly || mainSpec.register === 'off'
-          ? 'instrumental'
-          : (REGISTERS[mainSpec.register] || REGISTERS.alto).name + ' vocal';
-        document.getElementById('trackName').innerHTML =
-          escapeHtml(titleFrom(text)) + (mainSpec.aggro ? '<span class="flag">EXPLICIT</span>' : '');
-        document.getElementById('trackInfo').textContent =
-          mainSpec.keyName + " · " + mainSpec.bpm + " bpm · " + voiceLabel
-          + " · 0:32 · wav + stems + mid" + (mainSpec.aggro ? " · unfiltered" : "");
-        const lyricEl = document.getElementById('trackLyric');
-        if (voiceLabel === 'instrumental'){ lyricEl.textContent = ''; }
-        else {
-          lyricEl.textContent = '♪ ' + mainSpec.syllables.slice(0,14).map(s=>s.txt).join(' — ');
-        }
-        track.classList.add('on');
-      }
-    }, 260 * (i+1));
-  });
-}
-/* prompt → spec, with the voice selector overriding what the prompt implied */
-function specFor(text){
-  const spec = readPrompt(text);
-  const choice = document.getElementById('voice').value;
-  if (choice !== 'auto') spec.register = choice;
-  else if (!spec.register) spec.register = spec.dark || spec.aggro ? 'alto' : 'tenor';
-  return spec;
-}
-function escapeHtml(s){
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function titleFrom(text){
-  const words = text.replace(/[^\p{L}\p{N}\s]/gu,'').split(/\s+/).filter(Boolean);
-  const pick = words.slice(0, 3).join(' ');
-  return (pick || 'untitled').replace(/\b\w/g, c=>c.toUpperCase());
-}
-document.getElementById('gen').onclick = generate;
-document.getElementById('voice').addEventListener('change', ()=>{
-  if (document.getElementById('stage').classList.contains('on')) generate();
-});
-document.getElementById('prompt').addEventListener('keydown', e=>{ if (e.key === 'Enter') generate(); });
-
-document.getElementById('playMain').onclick = ()=>{
-  if (!mainSpec) return;
-  const text = document.getElementById('prompt').value.trim() || SUGGESTIONS[0];
-  const started = Engine.play('main', specFor(text), ()=> setIcon(playIconMain, false));
-  setIcon(playIconMain, started);
-};
-
-/* ---------- examples gallery ---------- */
-const EXAMPLES = [
-  { q:"a rainy Tuesday in Lisbon, slow piano, tape hiss", tags:["ambient","piano","alto vocal"], len:"0:48", voice:"alto" },
-  { q:"sunrise over an empty motorway", tags:["synth","cinematic","soprano vocal"], len:"1:12", voice:"soprano" },
-  { q:"the last five minutes of a good party", tags:["house","warm","tenor vocal"], len:"0:56", voice:"tenor" },
-  { q:"found a letter from 1997", tags:["lo-fi","nostalgic","instrumental"], len:"1:04", voice:"off" },
-  { q:"fuck this week, loud guitars, no chorus", tags:["explicit","punk","tenor vocal"], len:"1:41", explicit:true, voice:"tenor" },
-  { q:"a monk singing about the last bus home", tags:["choral","drone","bass vocal"], len:"1:26", voice:"bass" }
-];
-const exGrid = document.getElementById('exGrid');
-EXAMPLES.forEach((ex, i)=>{
-  const id = 'ex'+i;
-  const el = document.createElement('div');
-  el.className = 'ex';
-  el.innerHTML = `
-    <q>${ex.q}</q>${ex.explicit ? '<span class="flag" style="margin-left:0">EXPLICIT</span>' : ''}
-    <div class="tags">${ex.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-    <canvas class="viz" id="viz-${id}"></canvas>
-    <div class="ex-foot">
-      <button class="play" data-id="${id}" aria-label="Play example">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <span class="tag" style="border:0;padding:0">${ex.len} · wav + stems</span>
-    </div>`;
-  exGrid.appendChild(el);
-  const btn = el.querySelector('.play');
-  const icon = btn.querySelector('svg');
-  btn.onclick = ()=>{
-    const spec = readPrompt(ex.q);
-    spec.register = ex.voice;
-    const started = Engine.play(id, spec, ()=> setIcon(icon, false));
-    document.querySelectorAll('.play svg').forEach(s=>{ if (s!==icon) setIcon(s,false); });
-    setIcon(icon, started);
+  return {
+    play, stop,
+    get playing(){ return cur; },
+    elapsed(){ return ctx ? ctx.currentTime - startAt : 0; },
+    levels(){ if (!analyser) return null; analyser.getByteFrequencyData(data); return data; }
   };
-});
+})();
 
-/* ---------- viz setup ---------- */
-window.addEventListener('load', ()=>{
-  const mainC = document.getElementById('vizMain');
-  fitCanvas(mainC); registerViz(mainC, 'main');
-  EXAMPLES.forEach((_, i)=>{
-    const c = document.getElementById('viz-ex'+i);
-    fitCanvas(c); registerViz(c, 'ex'+i);
+/* ============================================================
+   3 · CHAT INTERFACE
+   ============================================================ */
+const $  = s => document.querySelector(s);
+const el = (tag, cls, html) => { const n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; };
+const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const thread = $('#thread'), scroller = $('#scroll'), input = $('#input'), sendBtn = $('#send');
+let history = [];      // {title, node}
+let lastSong = null;   // the song we're currently talking about
+let songCount = 0;
+
+const SEEDS = [
+  { t:"Missing the last train home", s:"a slow one, tenor voice" },
+  { t:"My grandmother's kitchen in summer", s:"warm, nostalgic, a bit funny" },
+  { t:"Fuck this week", s:"loud, angry, no chorus rules" },
+  { t:"Two people not saying the obvious thing", s:"quiet, soprano" }
+];
+
+function renderEmpty(){
+  thread.innerHTML = '';
+  const box = el('div','empty-state');
+  box.appendChild(el('h1',null,'What should the song be about?'));
+  box.appendChild(el('p',null,'Give me an idea, a memory, a mood or one ugly sentence. I’ll write the lyrics, explain what I’m going for, and then sing it to you.'));
+  const seeds = el('div','seeds');
+  SEEDS.forEach(s=>{
+    const b = el('button','seed', `<b>${esc(s.t)}</b><span>${esc(s.s)}</span>`);
+    b.onclick = ()=> submit(s.t + ' — ' + s.s);
+    seeds.appendChild(b);
   });
-  window.addEventListener('resize', ()=> vizzes.forEach(v=>fitCanvas(v.canvas)));
-  drawViz();
+  box.appendChild(seeds);
+  thread.appendChild(box);
+}
+
+function scrollDown(){ scroller.scrollTop = scroller.scrollHeight; }
+
+function addUser(text){
+  const m = el('div','msg user');
+  m.appendChild(el('div','body', esc(text)));
+  thread.appendChild(m); scrollDown();
+}
+function addBot(){
+  const m = el('div','msg bot');
+  m.appendChild(el('div','avatar','♪'));
+  const body = el('div','body');
+  m.appendChild(body); thread.appendChild(m); scrollDown();
+  return body;
+}
+
+/* typing dots → streamed text */
+function think(body, ms){
+  const d = el('div','dots','<span></span><span></span><span></span>');
+  body.appendChild(d);
+  return new Promise(res=> setTimeout(()=>{ d.remove(); res(); }, ms));
+}
+function stream(body, text){
+  return new Promise(res=>{
+    const p = el('p'); body.appendChild(p);
+    const words = text.split(' ');
+    let i = 0;
+    const caret = el('span','caret');
+    p.appendChild(caret);
+    const iv = setInterval(()=>{
+      caret.insertAdjacentText('beforebegin', (i?' ':'') + words[i]);
+      i++; scrollDown();
+      if (i >= words.length){ clearInterval(iv); caret.remove(); res(p); }
+    }, 22);
+  });
+}
+
+/* ---------- the lyric sheet ---------- */
+function renderSheet(song){
+  const sheet = el('div','sheet');
+  const head = el('div','sheet-head');
+  head.innerHTML = `<b>${esc(song.title)}</b>`
+    + (song.aggro ? '<span class="flag">EXPLICIT</span>' : '')
+    + `<span class="meta">${esc(song.keyName)} · ${song.bpm} bpm · ${REGISTERS[song.register].name}</span>`;
+  sheet.appendChild(head);
+  const bodyEl = el('div','sheet-body');
+  song.sections.forEach((sec, si)=>{
+    bodyEl.appendChild(el('div','section-label', esc(sec.label)));
+    sec.lines.forEach((text, li)=>{
+      const line = el('div','line dim');
+      line.dataset.key = si+'-'+li;
+      syllabifyLine(text).forEach((syl,k)=>{
+        const s = el('span','syl', esc(syl.txt));
+        s.dataset.k = k;
+        line.appendChild(s);
+      });
+      bodyEl.appendChild(line);
+    });
+  });
+  sheet.appendChild(bodyEl);
+  return sheet;
+}
+
+/* ---------- player ---------- */
+const PLAY = "M8 5v14l11-7z", PAUSE = "M6 5h4v14H6zm8 0h4v14h-4z";
+function renderPlayer(song, sheet, id){
+  const p = el('div','player');
+  p.innerHTML = `
+    <button class="pbtn" aria-label="Play"><svg viewBox="0 0 24 24"><path d="${PLAY}"/></svg></button>
+    <div class="pinfo">
+      <b>${esc(song.title)}</b>
+      <span class="meta">${esc(song.genre)} · ${esc(song.keyName)} · ${song.bpm} bpm · ${REGISTERS[song.register].name} vocal</span>
+      <div class="bar"><i></i></div>
+    </div>
+    <canvas class="viz"></canvas>`;
+  const btn = p.querySelector('.pbtn'), path = p.querySelector('path');
+  const fill = p.querySelector('.bar i'), canvas = p.querySelector('canvas');
+  const arr = arrange(song);
+  let raf = null;
+
+  function clearHighlight(){
+    sheet.querySelectorAll('.line').forEach(l=>{ l.classList.remove('active'); l.classList.add('dim'); });
+    sheet.querySelectorAll('.syl').forEach(s=>s.classList.remove('sung','now'));
+  }
+  let lastKey = null;
+  function frame(){
+    const t = Engine.elapsed();
+    fill.style.width = Math.min(100, (t/arr.dur)*100) + '%';
+    // karaoke
+    arr.lines.forEach(line=>{
+      const node = sheet.querySelector(`.line[data-key="${line.si}-${line.li}"]`);
+      if (!node) return;
+      const on = t >= line.t0 - 0.25 && t < line.t1;
+      node.classList.toggle('active', on);
+      node.classList.toggle('dim', !on);
+      if (on){
+        const key = line.si+'-'+line.li;
+        if (key !== lastKey){ lastKey = key; node.scrollIntoView({block:'nearest'}); }
+      }
+      line.syls.forEach((syl,k)=>{
+        const s = node.children[k]; if (!s) return;
+        const now = t >= syl.t && t < syl.t + Math.max(syl.dur, 0.12);
+        s.classList.toggle('now', now);
+        s.classList.toggle('sung', !now && t >= syl.t && on);
+      });
+    });
+    drawViz(canvas);
+    raf = requestAnimationFrame(frame);
+  }
+  btn.onclick = ()=>{
+    const started = Engine.play(id, arr, { onEnd(){
+      path.setAttribute('d', PLAY);
+      if (raf) cancelAnimationFrame(raf); raf=null;
+      fill.style.width='0%'; clearHighlight(); drawViz(canvas);
+    }});
+    path.setAttribute('d', started ? PAUSE : PLAY);
+    if (started){ if (raf) cancelAnimationFrame(raf); frame(); }
+  };
+  return { node:p, start(){ btn.click(); } };
+}
+
+function drawViz(canvas){
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  if (canvas.width !== Math.round(rect.width*dpr)){
+    canvas.width = Math.max(1, Math.round(rect.width*dpr));
+    canvas.height = Math.max(1, Math.round(rect.height*dpr));
+  }
+  const c = canvas.getContext('2d');
+  c.setTransform(dpr,0,0,dpr,0,0);
+  const w = canvas.width/dpr, h = canvas.height/dpr;
+  c.clearRect(0,0,w,h);
+  const d = Engine.playing ? Engine.levels() : null;
+  const css = getComputedStyle(document.documentElement);
+  const bars = 12, bw = Math.max(1,(w - (bars-1)*2)/bars);
+  for (let i=0;i<bars;i++){
+    const v = d ? Math.pow(d[Math.floor(i*d.length/bars/2.4)]/255, 1.4) : 0.07;
+    const bh = Math.max(2, v*h);
+    c.fillStyle = (d ? css.getPropertyValue('--accent') : css.getPropertyValue('--line')).trim();
+    c.globalAlpha = d ? 0.45+v*0.55 : 1;
+    const x = i*(bw+2);
+    c.beginPath();
+    c.roundRect ? c.roundRect(x,(h-bh)/2,bw,bh,Math.min(bw/2,2)) : c.rect(x,(h-bh)/2,bw,bh);
+    c.fill();
+  }
+  c.globalAlpha = 1;
+}
+
+/* ---------- follow-up edits ---------- */
+function parseEdit(text){
+  if (!lastSong) return null;
+  const t = text.toLowerCase();
+  const o = {}; let touched = false;
+  if (/faster|quicker|speed (it )?up|more energy/.test(t)){ o.bpm = Math.min(190, Math.round(lastSong.bpm*1.22)); touched=true; }
+  if (/slower|slow it down|calmer|softer/.test(t)){ o.bpm = Math.max(52, Math.round(lastSong.bpm*0.8)); touched=true; }
+  if (/angrier|angry|harder|heavier|louder|meaner|aggressive/.test(t)){ o.mood='aggro'; touched=true; }
+  if (/sadder|sad|darker|quieter|lonelier|melanchol/.test(t)){ o.mood='dark'; touched=true; }
+  if (/happier|happy|brighter|lighter|warmer|nicer/.test(t)){ o.mood='bright'; touched=true; }
+  ['soprano','alto','tenor','bass'].forEach(v=>{ if (t.includes(v)){ o.register=v; touched=true; } });
+  if (/female|woman|higher voice/.test(t)){ o.register='soprano'; touched=true; }
+  if (/male|man|deeper voice|lower voice/.test(t)){ o.register='bass'; touched=true; }
+  if (/different lyrics|rewrite|new words|other words|try again|another version|again/.test(t)){ o.salt = String(Math.random()); touched=true; }
+  return touched ? o : null;
+}
+
+/* ---------- history ---------- */
+function addHistory(song, anchor){
+  const hist = $('#hist');
+  hist.querySelector('.empty')?.remove();
+  const b = el('button', null, esc(song.title));
+  b.onclick = ()=>{
+    [...hist.children].forEach(c=>c.classList.remove('on'));
+    b.classList.add('on');
+    anchor.scrollIntoView({behavior:'smooth', block:'start'});
+  };
+  hist.prepend(b);
+  [...hist.children].forEach(c=>c.classList.remove('on'));
+  b.classList.add('on');
+}
+
+/* ---------- the main turn ---------- */
+async function submit(text){
+  text = (text||'').trim();
+  if (!text) return;
+  if (thread.querySelector('.empty-state')) thread.innerHTML = '';
+  addUser(text);
+  input.value = ''; input.style.height='auto'; sendBtn.disabled = true;
+
+  const edit = parseEdit(text);
+  const body = addBot();
+  await think(body, 550 + Math.random()*400);
+
+  let song, opener;
+  if (edit){
+    song = writeSong(lastSong.idea, Object.assign({salt:String(Math.random())}, edit));
+    song.idea = lastSong.idea;
+    const bits = [];
+    if (edit.bpm) bits.push(edit.bpm > lastSong.bpm ? 'pushed the tempo up' : 'pulled the tempo back');
+    if (edit.mood) bits.push('changed the mood to ' + edit.mood);
+    if (edit.register) bits.push('moved it to a ' + edit.register);
+    if (!bits.length) bits.push('rewrote the words');
+    opener = `Done — ${bits.join(', ')}. Same idea, new take: a ${song.genre} in ${song.keyName} at ${song.bpm} bpm, ${REGISTERS[song.register].name} vocal. Here it is:`;
+  } else {
+    song = writeSong(text, {});
+    opener = describe(song);
+  }
+  lastSong = song;
+
+  await stream(body, opener);
+
+  const sheet = renderSheet(song);
+  body.appendChild(sheet);
+
+  const id = 'song'+(++songCount);
+  const actions = el('div','actions');
+  const createBtn = el('button','create','▶ Create the song');
+  const voiceSel = el('select','mini');
+  ['auto','soprano','alto','tenor','bass'].forEach(v=>{
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v==='auto' ? 'Voice: '+REGISTERS[song.register].name : 'Voice: '+v;
+    voiceSel.appendChild(o);
+  });
+  const againBtn = el('button','mini','↻ Different words');
+  actions.append(createBtn, voiceSel, againBtn);
+  body.appendChild(actions);
+  scrollDown();
+
+  createBtn.onclick = async ()=>{
+    if (voiceSel.value !== 'auto') song.register = voiceSel.value;
+    createBtn.disabled = true;
+    createBtn.textContent = '● Composing…';
+    await new Promise(r=>setTimeout(r, 700));
+    createBtn.remove(); voiceSel.remove(); againBtn.remove();
+    const player = renderPlayer(song, sheet, id);
+    body.appendChild(player.node);
+    scrollDown();
+    player.start();
+    addHistory(song, body.parentElement);
+  };
+  againBtn.onclick = ()=> submit('different lyrics, same idea');
+}
+
+/* ---------- composer wiring ---------- */
+input.addEventListener('input', ()=>{
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 180) + 'px';
+  sendBtn.disabled = !input.value.trim();
+});
+input.addEventListener('keydown', e=>{
+  if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); submit(input.value); }
+});
+sendBtn.onclick = ()=> submit(input.value);
+$('#newBtn').onclick = ()=>{ Engine.stop(); lastSong=null; renderEmpty(); };
+$('#menuBtn').onclick = ()=> $('#sidebar').classList.toggle('hide');
+if (window.innerWidth > 860) $('#sidebar').classList.remove('hide');
+window.addEventListener('resize', ()=>{
+  if (window.innerWidth > 860) $('#sidebar').classList.remove('hide');
 });
 
-/* ---------- copy button ---------- */
-document.getElementById('copyBtn').onclick = async ()=>{
-  const btn = document.getElementById('copyBtn');
-  try{
-    await navigator.clipboard.writeText(document.getElementById('code').innerText);
-    btn.textContent = 'copied';
-  }catch(e){ btn.textContent = 'select manually'; }
-  setTimeout(()=>{ btn.textContent = 'copy'; }, 1600);
-};
-
-document.getElementById('yr').textContent = new Date().getFullYear();
+renderEmpty();
 </script>
 </body>
 </html>
