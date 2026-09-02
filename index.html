@@ -558,6 +558,67 @@ const REGISTERS = {
   bass:   {shift:0.86, oct:7,  name:'bass'}
 };
 const VOWELS = {a:'a',á:'a',à:'a',ã:'a',â:'a',e:'e',é:'e',ê:'e',i:'i',í:'i',y:'i',o:'o',ó:'o',ô:'o',õ:'o',u:'u',ú:'u'};
+
+/* ---------- consonants ----------
+   A vowel alone sounds like "ah-oo-ee". What makes a synthesized voice
+   sing actual WORDS is: (1) the formants sliding out of a consonant's
+   locus into the vowel, (2) a noise burst for plosives, (3) a filtered
+   noise band for fricatives, (4) a voiced murmur for nasals.        */
+const CONS = {
+  // stops: silence, then a burst, then the formants slide out of the locus
+  p:{k:'stop', voiced:false, locus:[300,800,2300],  burst:1300, bw:0.9, dur:.055},
+  b:{k:'stop', voiced:true,  locus:[300,800,2300],  burst:900,  bw:0.8, dur:.045},
+  t:{k:'stop', voiced:false, locus:[300,1800,2800], burst:3900, bw:1.1, dur:.05},
+  d:{k:'stop', voiced:true,  locus:[300,1800,2800], burst:2700, bw:1.0, dur:.04},
+  k:{k:'stop', voiced:false, locus:[300,2200,2500], burst:2300, bw:1.2, dur:.055},
+  g:{k:'stop', voiced:true,  locus:[300,2200,2500], burst:1700, bw:1.0, dur:.045},
+  // fricatives: shaped noise
+  f:{k:'fric', voiced:false, locus:[320,1100,2400], band:4200, q:0.8, dur:.07},
+  v:{k:'fric', voiced:true,  locus:[320,1100,2400], band:3600, q:0.9, dur:.055},
+  s:{k:'fric', voiced:false, locus:[300,1700,2700], band:6800, q:2.2, dur:.085},
+  z:{k:'fric', voiced:true,  locus:[300,1700,2700], band:5600, q:1.8, dur:.06},
+  sh:{k:'fric',voiced:false, locus:[300,1900,2400], band:3000, q:1.7, dur:.09},
+  th:{k:'fric',voiced:false, locus:[300,1600,2600], band:5200, q:0.7, dur:.06},
+  h:{k:'fric', voiced:false, locus:[400,1400,2400], band:1400, q:0.5, dur:.05},
+  // affricates = stop + fricative
+  ch:{k:'affr',voiced:false, locus:[300,1900,2400], band:3200, q:1.6, burst:2600, dur:.09},
+  j: {k:'affr',voiced:true,  locus:[300,1900,2400], band:2800, q:1.5, burst:2000, dur:.075},
+  // nasals and liquids: voiced, no noise — just a murmur at their own locus
+  m:{k:'nasal',locus:[280,900,2200],  dur:.075},
+  n:{k:'nasal',locus:[280,1600,2600], dur:.065},
+  ng:{k:'nasal',locus:[280,2000,2600],dur:.075},
+  l:{k:'liq',  locus:[350,1100,2900], dur:.055},
+  r:{k:'liq',  locus:[350,1250,1600], dur:.055},
+  w:{k:'glide',locus:[300,700,2200],  dur:.06},
+  y:{k:'glide',locus:[280,2200,3000], dur:.05}
+};
+
+/* very rough English grapheme→phoneme, enough to hear the word */
+function phonemize(sylRaw){
+  let s = (sylRaw||'').toLowerCase().replace(/[^a-zà-ÿ']/g,'');
+  if (!s) return {onset:[], coda:[]};
+  s = s.replace(/ck/g,'k').replace(/ph/g,'f').replace(/wh/g,'w')
+       .replace(/qu/g,'kw').replace(/x/g,'ks').replace(/gh/g,'');
+  const toks = [];
+  for (let i=0;i<s.length;i++){
+    const two = s.substr(i,2);
+    if (two==='sh'||two==='ch'||two==='th'||two==='ng'){ toks.push(two); i++; continue; }
+    let c = s[i];
+    if (c==='c') c = /[eiy]/.test(s[i+1]||'') ? 's' : 'k';
+    if (c==='g' && /[eiy]/.test(s[i+1]||'')) c = 'j';
+    if (c==='q') c = 'k';
+    toks.push(c);
+  }
+  const vAt = toks.findIndex(t => t.length===1 && VOWELS[t]);
+  if (vAt < 0) return {onset:toks.filter(t=>CONS[t]).slice(-2), coda:[]};
+  let vEnd = vAt;
+  while (vEnd+1 < toks.length && toks[vEnd+1].length===1 && VOWELS[toks[vEnd+1]]) vEnd++;
+  const onset = toks.slice(0, vAt).filter(t=>CONS[t]).slice(-2);
+  let coda = toks.slice(vEnd+1).filter(t=>CONS[t]);
+  // silent final e ("home", "name") — it shouldn't get sung
+  if (coda.length && /e$/.test(s) && vEnd < toks.length-1) coda = coda.slice(0,2);
+  return { onset, coda: coda.slice(0,2) };
+}
 const isVowel = c => !!VOWELS[c];
 const mtof = m => 440 * Math.pow(2,(m-69)/12);
 
@@ -572,10 +633,23 @@ function splitSyl(word){
         parts.push(cur); cur='';
       } else if (i+3<c.length && !isVowel(c[i+1]) && !isVowel(c[i+2]) && isVowel(c[i+3])){
         cur += c[++i]; parts.push(cur); cur='';                    // VC-CV
+      } else if (i+4<c.length && !isVowel(c[i+1]) && !isVowel(c[i+2]) && !isVowel(c[i+3]) && isVowel(c[i+4])){
+        cur += c[++i]; parts.push(cur); cur='';                    // VC-CCV ("kit|chen")
       }
     }
   }
-  if (cur){ if (parts.length) parts[parts.length-1]+=cur; else parts.push(cur); }
+  // a leftover chunk with a vowel of its own is its own syllable ("mis|sing"),
+  // otherwise it's just a trailing consonant cluster ("train")
+  if (cur){
+    if (parts.length && ![...cur].some(isVowel)) parts[parts.length-1] += cur;
+    else parts.push(cur);
+  }
+  // silent final e: "ho|me" is one sung note, not two
+  const KEEP_E = new Set(['maybe','recipe','karate','finale','simile','sesame','apostrophe','epitome','catastrophe','cafe','latte']);
+  if (parts.length > 1 && /^[bcdfghjklmnpqrstvwxz]+e$/.test(parts[parts.length-1]) && !KEEP_E.has(word)){
+    const tail = parts.pop();
+    parts[parts.length-1] += tail;
+  }
   return parts.length ? parts : [word];
 }
 function vowelOf(part){
@@ -595,7 +669,9 @@ function syllabifyLine(text){
     let cursor = 0;
     parts.forEach((p, i)=>{
       const raw = core.substr(cursor, p.length); cursor += p.length;
-      out.push({ txt:(i===0?pre:'') + raw + (i===parts.length-1?post:''), v:vowelOf(p) });
+      const ph = phonemize(p);
+      out.push({ txt:(i===0?pre:'') + raw + (i===parts.length-1?post:''),
+                 v:vowelOf(p), onset:ph.onset, coda:ph.coda });
     });
   });
   return out;
@@ -681,6 +757,7 @@ function arrange(song){
         const note = scaleNote(song.root + reg.oct - 12, sc, deg + contour[k % contour.length]);
         const f = mtof(note);
         events.push({t, kind:'voice', f, dur, vowel:syl.v, gain: song.aggro?0.23:0.2,
+                     onset:syl.onset, coda:syl.coda, last,
                      reg:song.register, vibRate, vibDepth, from:lastVocal});
         lineSyls.push({txt:syl.txt, t, dur});
         lastVocal = f;
@@ -734,44 +811,124 @@ const Engine = (()=>{
     s.start(at); nodes.push(s);
   }
 
-  /* the voice: glottal saw + breath → three formant bandpasses → envelope */
+  /* short burst / hiss used for plosives and fricatives */
+  function hiss(at, dur, freq, q, gain, shape){
+    const len = Math.max(2, Math.floor(ctx.sampleRate*dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i=0;i<len;i++){
+      const p = i/len;
+      const envl = shape==='burst' ? Math.pow(1-p, 4)         // click that decays fast
+                 : Math.sin(Math.PI*Math.min(1, p*3.2));      // hiss that swells and holds
+      ch[i] = (Math.random()*2-1) * envl;
+    }
+    const s = ctx.createBufferSource(); s.buffer = buf;
+    const bp = ctx.createBiquadFilter(); bp.type='bandpass';
+    bp.frequency.value = Math.min(freq, ctx.sampleRate/2-200); bp.Q.value = q;
+    const g = ctx.createGain(); g.gain.value = gain;
+    s.connect(bp); bp.connect(g); g.connect(master);
+    s.start(at); nodes.push(s);
+    return s;
+  }
+
+  /* ---- the voice ----
+     One syllable = optional consonant articulation, a sung vowel, and an
+     optional closing consonant. The formants start at the consonant's
+     locus and slide into the vowel; that transition is what the ear
+     actually reads as a word.                                        */
   function voice(e, at){
-    const reg = REGISTERS[e.reg] || REGISTERS.alto;
+    const reg  = REGISTERS[e.reg] || REGISTERS.alto;
+    const sh   = reg.shift;
+    const targ = (FORMANTS[e.vowel] || FORMANTS.a).map(f => Math.min(f*sh, ctx.sampleRate/2-200));
+
+    // ---- plan the onset ----
+    const onset = (e.onset||[]).map(c=>CONS[c]).filter(Boolean);
+    const lead  = onset[onset.length-1] || null;          // the one touching the vowel
+    const pre   = onset.length > 1 ? onset[0] : null;     // e.g. the s in "still"
+    let onDur = 0;
+    if (lead) onDur = Math.min(lead.dur, e.dur*0.4);
+    if (pre)  onDur = Math.min(onDur + pre.dur, e.dur*0.55);
+    // singers place the consonant BEFORE the beat so the vowel lands on it
+    const cStart = Math.max(ctx.currentTime + 0.002, at - onDur);
+    const vAt    = Math.max(cStart + onDur, at);           // vowel on the beat
+    const vDur   = Math.max(0.09, e.dur - 0.015);
+    const vEnd   = vAt + vDur;
+
+    // ---- consonant noise ----
+    let x = cStart;
+    if (pre){
+      const d = Math.min(pre.dur, onDur*0.6);
+      if (pre.k==='fric'||pre.k==='affr') hiss(x, d, pre.band, pre.q, e.gain*0.5, 'hiss');
+      else if (pre.k==='stop') hiss(x+d*0.6, 0.02, pre.burst, pre.bw, e.gain*0.55, 'burst');
+      x += d;
+    }
+    if (lead){
+      if (lead.k==='fric')  hiss(x, Math.max(0.02, vAt-x), lead.band, lead.q, e.gain*0.55, 'hiss');
+      if (lead.k==='affr'){ hiss(x, 0.018, lead.burst, 1.2, e.gain*0.5, 'burst');
+                            hiss(x+0.018, Math.max(0.02, vAt-x-0.018), lead.band, lead.q, e.gain*0.5, 'hiss'); }
+      if (lead.k==='stop')  hiss(Math.max(x, vAt-0.022), 0.022, lead.burst, lead.bw, e.gain*0.7, 'burst');
+    }
+
+    // ---- the voiced source ----
+    const voicedOnset = lead && (lead.k==='nasal' || lead.k==='liq' || lead.k==='glide' ||
+                                 (lead.k!=='stop' && lead.voiced));
+    const srcAt = voicedOnset ? cStart : (lead && lead.k==='stop' ? Math.max(cStart, vAt-0.006) : vAt);
+
     const o = ctx.createOscillator(); o.type='sawtooth';
     if (e.from && Math.abs(e.from-e.f) > 1){
-      o.frequency.setValueAtTime(e.from, at);
-      o.frequency.exponentialRampToValueAtTime(e.f, at+Math.min(0.08, e.dur*0.25)); // portamento
-    } else o.frequency.setValueAtTime(e.f, at);
+      o.frequency.setValueAtTime(e.from, srcAt);
+      o.frequency.exponentialRampToValueAtTime(e.f, srcAt+Math.min(0.08, vDur*0.25));  // portamento
+    } else o.frequency.setValueAtTime(e.f, srcAt);
 
     const lfo = ctx.createOscillator(); lfo.frequency.value = e.vibRate;
     const lg = ctx.createGain();
-    lg.gain.setValueAtTime(0, at);
-    lg.gain.linearRampToValueAtTime(e.f*e.vibDepth, at+Math.min(0.3, e.dur*0.7));
+    lg.gain.setValueAtTime(0, vAt);
+    lg.gain.linearRampToValueAtTime(e.f*e.vibDepth, vAt+Math.min(0.3, vDur*0.7));
     lfo.connect(lg); lg.connect(o.frequency);
-    lfo.start(at); lfo.stop(at+e.dur+0.08);
+    lfo.start(srcAt); lfo.stop(vEnd+0.14);
 
-    const bl = Math.max(1, Math.floor(ctx.sampleRate*Math.min(0.2, e.dur)));
+    // breath at the vowel onset
+    const bl = Math.max(2, Math.floor(ctx.sampleRate*Math.min(0.18, vDur)));
     const bb = ctx.createBuffer(1, bl, ctx.sampleRate);
     const bc = bb.getChannelData(0);
     for (let i=0;i<bl;i++) bc[i] = Math.random()*2-1;
     const breath = ctx.createBufferSource(); breath.buffer = bb;
     const bg = ctx.createGain();
-    bg.gain.setValueAtTime(e.gain*0.45, at);
-    bg.gain.exponentialRampToValueAtTime(0.0001, at+Math.min(0.16, e.dur));
+    bg.gain.setValueAtTime(e.gain*0.4, vAt);
+    bg.gain.exponentialRampToValueAtTime(0.0001, vAt+Math.min(0.15, vDur));
+
+    // ---- amplitude envelope ----
+    const coda = (e.coda||[]).map(c=>CONS[c]).filter(Boolean);
+    const codaC = coda[0] || null;
+    const voicedCoda = codaC && (codaC.k==='nasal' || codaC.k==='liq' || codaC.k==='glide');
+    const codaDur = codaC ? Math.min(codaC.dur, vDur*0.3) : 0;
 
     const env = ctx.createGain();
-    env.gain.setValueAtTime(0.0001, at);
-    env.gain.exponentialRampToValueAtTime(e.gain, at+Math.min(0.07, e.dur*0.3));
-    env.gain.setValueAtTime(e.gain, at+e.dur*0.7);
-    env.gain.exponentialRampToValueAtTime(0.0001, at+e.dur);
+    env.gain.setValueAtTime(0.0001, srcAt);
+    if (voicedOnset){
+      env.gain.exponentialRampToValueAtTime(e.gain*0.4, cStart+0.018);   // the murmur of m/n/l
+      env.gain.linearRampToValueAtTime(e.gain, vAt+0.03);
+    } else {
+      env.gain.exponentialRampToValueAtTime(e.gain, vAt+Math.min(0.05, vDur*0.3));
+    }
+    env.gain.setValueAtTime(e.gain, vAt + vDur*0.68);
+    env.gain.exponentialRampToValueAtTime(0.0001, vEnd + (voicedCoda ? codaDur : 0.02));
 
     o.connect(env); breath.connect(bg); bg.connect(env);
 
+    // ---- formants, with the locus transitions ----
     const mix = ctx.createGain();
-    (FORMANTS[e.vowel]||FORMANTS.a).forEach((f,i)=>{
+    targ.forEach((f, i)=>{
       const bp = ctx.createBiquadFilter(); bp.type='bandpass';
-      bp.frequency.value = Math.min(f*reg.shift, ctx.sampleRate/2-100);
       bp.Q.value = 7 + i*4;
+      const startF = lead ? Math.min(lead.locus[i]*sh, ctx.sampleRate/2-200) : f;
+      bp.frequency.setValueAtTime(startF, srcAt);
+      bp.frequency.linearRampToValueAtTime(f, vAt + Math.min(0.06, vDur*0.35));   // slide into the vowel
+      if (codaC){                                                                 // and out into the coda
+        const cf = Math.min(codaC.locus[i]*sh, ctx.sampleRate/2-200);
+        bp.frequency.setValueAtTime(f, Math.max(vAt+0.07, vEnd-codaDur-0.02));
+        bp.frequency.linearRampToValueAtTime(cf, vEnd);
+      }
       const g = ctx.createGain(); g.gain.value = [1,0.6,0.34][i];
       env.connect(bp); bp.connect(g); g.connect(mix);
     });
@@ -779,9 +936,20 @@ const Engine = (()=>{
     env.connect(dry); dry.connect(mix);
     mix.connect(master);
 
-    o.start(at); o.stop(at+e.dur+0.08);
-    breath.start(at);
+    o.start(srcAt); o.stop(vEnd+0.14);
+    breath.start(vAt);
     nodes.push(o, lfo, breath);
+
+    // ---- closing consonant ----
+    if (codaC){
+      const cAt = vEnd - codaDur*0.5;
+      if (codaC.k==='fric'||codaC.k==='affr') hiss(cAt, codaC.dur, codaC.band, codaC.q, e.gain*0.5, 'hiss');
+      if (codaC.k==='stop')                   hiss(vEnd+0.015, 0.02, codaC.burst, codaC.bw, e.gain*0.45, 'burst');
+      // nasal / liquid codas are carried by the formant ramp above
+      const second = coda[1];
+      if (second && (second.k==='fric'||second.k==='affr'))
+        hiss(cAt+codaDur*0.7, second.dur, second.band, second.q, e.gain*0.4, 'hiss');
+    }
   }
 
   function tick(){
@@ -839,7 +1007,7 @@ let songCount = 0;
 const SEEDS = [
   { t:"Missing the last train home", s:"a slow one, tenor voice" },
   { t:"My grandmother's kitchen in summer", s:"warm, nostalgic, a bit funny" },
-  { t:"Fuck this week", s:"loud, angry, no chorus rules" },
+  { t:"The worst week I've had in years", s:"loud, angry, no chorus rules" },
   { t:"Two people not saying the obvious thing", s:"quiet, soprano" }
 ];
 
