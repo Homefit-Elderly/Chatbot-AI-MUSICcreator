@@ -139,6 +139,18 @@ section{padding:84px 0;border-top:1px solid var(--line)}
   font-family:inherit;font-size:13px;color:var(--ink-2);cursor:pointer;transition:.2s;
 }
 .chip:hover{border-color:var(--accent);color:var(--accent)}
+.voice-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+.voice-row label{font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.voice-row select{
+  padding:7px 12px;border-radius:9px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);font-family:inherit;font-size:13.5px;cursor:pointer;
+}
+.voice-row select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.voice-row .hint{font-size:13px;color:var(--ink-3)}
+.lyric{
+  display:block;margin-top:8px;font-family:var(--mono);font-size:12.5px;color:var(--accent);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
 .filter-note{margin-top:16px;font-size:13.5px;color:var(--ink-3);max-width:640px}
 .flag{
   display:inline-block;margin-left:8px;padding:1px 6px;border-radius:4px;
@@ -252,7 +264,7 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--ink-3);font-s
   <div class="hero wrap">
     <div class="pill"><span class="dot"></span> v0.4 · open source · MIT</div>
     <h1>Describe a feeling.<br>Get back a <em>song</em>.</h1>
-    <p class="lede">Muse.ai turns a sentence, a memory or a half-formed idea into original music — melody, harmony and arrangement, generated in seconds.</p>
+    <p class="lede">Muse.ai turns a sentence, a memory or a half-formed idea into original music — melody, harmony, arrangement <em style="font-style:normal;color:var(--ink)">and a voice that sings it</em>, generated in seconds.</p>
     <div class="hero-cta">
       <a class="btn btn-accent" href="#demo">Try the demo</a>
       <a class="btn btn-ghost" href="#install">Read the docs</a>
@@ -266,7 +278,7 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--ink-3);font-s
       <div class="sec-head">
         <div class="eyebrow">Live demo</div>
         <h2>Write the prompt. Hear the result.</h2>
-        <p>This page runs a tiny in-browser synth so you can hear the shape of an idea instantly. The real model returns full stems and MIDI.</p>
+        <p>This page runs a tiny in-browser synth — band and voice — so you can hear the shape of an idea instantly. The singer takes the vowels straight from your prompt. The real model returns full stems, sung lyrics and MIDI.</p>
       </div>
 
       <div class="demo">
@@ -274,6 +286,18 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--ink-3);font-s
         <div class="input-row">
           <input id="prompt" type="text" placeholder="a rainy Tuesday in Lisbon, slow piano, tape hiss" aria-label="Music prompt">
           <button class="btn btn-accent" id="gen">Generate</button>
+        </div>
+        <div class="voice-row">
+          <label for="voice">Voice</label>
+          <select id="voice">
+            <option value="auto" selected>Auto (from prompt)</option>
+            <option value="soprano">Soprano</option>
+            <option value="alto">Alto</option>
+            <option value="tenor">Tenor</option>
+            <option value="bass">Bass</option>
+            <option value="off">Instrumental</option>
+          </select>
+          <span class="hint">The voice sings the vowels of your own words.</span>
         </div>
         <div class="chips" id="chips"></div>
         <p class="filter-note">No prompt filter. Swear at it, be blunt, write the ugly version of the sentence — profanity and raw language are read as tone and energy, not rejected. Explicit lyrics are allowed and flagged in the metadata, never bleeped.</p>
@@ -287,6 +311,7 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--ink-3);font-s
             <div class="track-meta">
               <b id="trackName">untitled</b>
               <span id="trackInfo">—</span>
+              <span class="lyric" id="trackLyric"></span>
               <canvas class="viz" id="vizMain"></canvas>
             </div>
           </div>
@@ -304,6 +329,7 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--ink-3);font-s
       </div>
       <div class="grid">
         <div class="card"><div class="ico">✍︎</div><h3>Prompt-native</h3><p>Plain language in, music out. "Nostalgic but not sad, 90 bpm, brushed drums" is a valid input.</p></div>
+        <div class="card"><div class="ico">🎤</div><h3>It sings</h3><p>Four registers — soprano, alto, tenor, bass — with vibrato, breath and portamento between notes. Ask for a lead vocal, a choir, or nothing but the band.</p></div>
         <div class="card"><div class="ico">🎛</div><h3>Stems, not just mixes</h3><p>Every render ships separated tracks — drums, bass, keys, lead — ready for your DAW.</p></div>
         <div class="card"><div class="ico">♪</div><h3>MIDI export</h3><p>Get the notes, not only the audio. Re-voice, re-tempo and re-arrange anything.</p></div>
         <div class="card"><div class="ico">↻</div><h3>Iterative edits</h3><p>"Same idea, warmer, drop the drums after bar 16." Muse keeps the motif and changes the rest.</p></div>
@@ -332,8 +358,12 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--ink-3);font-s
           <p>A symbolic model writes the piece as notes first — key, chord movement, motif, form — so the result has an actual shape instead of a texture. Output is <code>.mid</code>.</p>
         </div>
         <div class="hstep">
+          <h3>Sing it</h3>
+          <p>A vocal model writes a lyric line for the melody and performs it in the register you asked for. In this browser demo the voice is a formant synthesizer singing the vowels of your own prompt — the real model sings written words.</p>
+        </div>
+        <div class="hstep">
           <h3>Render and mix</h3>
-          <p>A neural synthesizer performs the score with the chosen instruments, then a mix stage balances and masters it. You get <code>.wav</code>, stems and the MIDI.</p>
+          <p>A neural synthesizer performs the score with the chosen instruments, the vocal is tuned and sat on top, then a mix stage masters it. You get <code>.wav</code>, stems and the MIDI.</p>
         </div>
       </div>
     </div>
@@ -344,7 +374,7 @@ footer{border-top:1px solid var(--line);padding:44px 0;color:var(--ink-3);font-s
     <div class="wrap">
       <div class="sec-head">
         <div class="eyebrow">Examples</div>
-        <h2>Four prompts, four very different tracks.</h2>
+        <h2>Six prompts, six very different tracks.</h2>
         <p>Previews below are generated live in your browser from the same seed logic — press play.</p>
       </div>
       <div class="grid" id="exGrid"></div>
@@ -375,14 +405,18 @@ pip install -e .
 
 <span class="c"># generate from a phrase</span>
 muse <span class="s">"a rainy Tuesday in Lisbon, slow piano, tape hiss"</span> \
-  --length 45s --stems --out ./renders
+  --length 45s --voice alto --stems --out ./renders
+
+<span class="c"># write your own words and let it sing them</span>
+muse <span class="s">"last train home"</span> --voice tenor --lyrics ./words.txt
+muse <span class="s">"sunrise over an empty motorway"</span> --voice off  <span class="c"># instrumental</span>
 
 <span class="c"># prompts are never filtered; --tag-explicit only labels the output</span>
 muse <span class="s">"fuck this week, loud guitars, no chorus"</span> --tag-explicit
 
 <span class="c"># or from Python</span>
 <span class="k">from</span> muse <span class="k">import</span> Muse
-Muse().compose(<span class="s">"sunrise over an empty motorway"</span>).save(<span class="s">"drive.wav"</span>)</pre>
+Muse().compose(<span class="s">"sunrise over an empty motorway"</span>, voice=<span class="s">"soprano"</span>).save(<span class="s">"drive.wav"</span>)</pre>
           </div>
         </div>
         <div>
@@ -452,6 +486,42 @@ const BRIGHT = ['sun','happy','summer','dance','bright','joy','festival','beach'
    musical information (energy + attitude), not as something to reject. */
 const AGGRO = ['fuck','shit','damn','hell','bitch','ass','piss','bastard','crap','angry','rage','furious','hate','scream','loud','riot','fight','wasted','fed up','pissed'];
 
+/* ---------- voice: formant table + syllable extraction ----------
+   Each vowel is three resonances (F1,F2,F3). Running a sawtooth
+   through three bandpass filters at those frequencies is the classic
+   cheap way to make an oscillator read as a human vowel.            */
+const FORMANTS = {
+  a:[730,1090,2440], e:[530,1840,2480], i:[270,2290,3010],
+  o:[570,840,2410],  u:[300,870,2240],  m:[280,900,2200]
+};
+const REGISTERS = {
+  soprano:{ shift:1.22, oct:24, name:"soprano" },
+  alto:   { shift:1.10, oct:19, name:"alto"    },
+  tenor:  { shift:1.00, oct:12, name:"tenor"   },
+  bass:   { shift:0.86, oct:5,  name:"bass"    }
+};
+const VOWEL_MAP = { a:'a', á:'a', à:'a', ã:'a', â:'a', e:'e', é:'e', ê:'e',
+                    i:'i', í:'i', y:'i', o:'o', ó:'o', ô:'o', õ:'o', u:'u', ú:'u' };
+
+/* Pull a singable syllable line out of whatever the user typed.
+   Words become vowel nuclei; anything unsingable falls back to humming. */
+function syllabify(text){
+  const words = (text||'').toLowerCase().replace(/[^\p{L}\s']/gu,' ').split(/\s+/).filter(Boolean);
+  const out = [];
+  words.forEach(w=>{
+    const vowels = [...w].map(c=>VOWEL_MAP[c]).filter(Boolean);
+    if (!vowels.length){ out.push({v:'m', txt:'mm'}); return; }
+    // one syllable per vowel group, carrying the leading consonant for display
+    let idx = 0;
+    vowels.forEach(v=>{
+      idx = [...w].findIndex((c,k)=>k>=idx && VOWEL_MAP[c]===v) + 1;
+      const lead = w[idx-2] && !VOWEL_MAP[w[idx-2]] ? w[idx-2] : '';
+      out.push({ v, txt: (lead + v) });
+    });
+  });
+  return out.length ? out.slice(0, 24) : [{v:'a', txt:'ah'}];
+}
+
 function readPrompt(text){
   const t = (text||'').toLowerCase();
   const seed = hashString(t || 'muse');
@@ -472,11 +542,25 @@ function readPrompt(text){
 
   const root = 48 + Math.floor(r()*10);           // MIDI note
   const keys = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+
+  // the voice: register can be named in the prompt, otherwise it follows the mood
+  let register = null;
+  if (/soprano|female|high voice|girl|choir/.test(t)) register = 'soprano';
+  else if (/alto|mezzo|woman singing/.test(t)) register = 'alto';
+  else if (/tenor|male|man singing|guy/.test(t)) register = 'tenor';
+  else if (/bass|baritone|deep voice|low voice|monk/.test(t)) register = 'bass';
+  const instrumentalOnly = /instrumental|no vocals|no singing|no voice/.test(t);
+
   return {
     seed, r: rng(seed), scale, bpm, root,
     keyName: keys[root%12] + (dark || scale==='minorPent' || scale==='aeolian' ? ' minor' : ' major'),
     hats: !/ambient|lullab|piano only|solo/.test(t),
-    dark, aggro
+    dark, aggro,
+    syllables: syllabify(text),
+    register, instrumentalOnly,
+    // vibrato gets wider and later on slow, sad material; tight and hard on aggro
+    vibRate: aggro ? 6.4 : 5.0 + r()*0.8,
+    vibDepth: aggro ? 0.006 : 0.012 + r()*0.006
   };
 }
 const mtof = m => 440 * Math.pow(2, (m-69)/12);
@@ -513,6 +597,73 @@ const Engine = (()=>{
     nodes.push(o);
   }
 
+  /* ---- the singing voice ----
+     glottal source (sawtooth + vibrato + breath) → three formant
+     bandpass filters → envelope. Consonant-ish transient on attack,
+     portamento from the previous note so lines join up like a phrase. */
+  function sing(freq, t, dur, vowel, gain, spec, fromFreq){
+    const reg = REGISTERS[spec.register] || REGISTERS.alto;
+    const shift = reg.shift;
+
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    if (fromFreq && Math.abs(fromFreq - freq) > 1){
+      osc.frequency.setValueAtTime(fromFreq, t);
+      osc.frequency.exponentialRampToValueAtTime(freq, t + Math.min(0.09, dur*0.25)); // portamento
+    } else {
+      osc.frequency.setValueAtTime(freq, t);
+    }
+
+    // vibrato, faded in so short notes stay straight
+    const lfo = ctx.createOscillator(); lfo.type = 'sine';
+    lfo.frequency.value = spec.vibRate;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.setValueAtTime(0, t);
+    lfoGain.gain.linearRampToValueAtTime(freq * spec.vibDepth, t + Math.min(0.35, dur*0.6));
+    lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+    lfo.start(t); lfo.stop(t + dur + 0.1);
+
+    // breath: filtered noise mixed under the tone
+    const bLen = Math.max(1, Math.floor(ctx.sampleRate * (dur + 0.05)));
+    const bBuf = ctx.createBuffer(1, bLen, ctx.sampleRate);
+    const bCh = bBuf.getChannelData(0);
+    for (let i=0;i<bLen;i++) bCh[i] = (Math.random()*2-1);
+    const breath = ctx.createBufferSource(); breath.buffer = bBuf;
+    const bGain = ctx.createGain();
+    bGain.gain.setValueAtTime(gain*0.5, t);
+    bGain.gain.exponentialRampToValueAtTime(0.0001, t + Math.min(0.18, dur));
+
+    // shared amplitude envelope (a singer's attack, not a piano's)
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.exponentialRampToValueAtTime(gain, t + Math.min(0.09, dur*0.3));
+    env.gain.setValueAtTime(gain, t + dur*0.72);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+    osc.connect(env);
+    breath.connect(bGain); bGain.connect(env);
+
+    const mix = ctx.createGain(); mix.gain.value = 1;
+    const F = FORMANTS[vowel] || FORMANTS.a;
+    const amps = [1, 0.6, 0.34];
+    F.forEach((f, i)=>{
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = Math.min(f * shift, ctx.sampleRate/2 - 100);
+      bp.Q.value = 7 + i*4;
+      const g = ctx.createGain(); g.gain.value = amps[i];
+      env.connect(bp); bp.connect(g); g.connect(mix);
+    });
+    // a little raw tone through so it doesn't sound like a filter sweep
+    const dry = ctx.createGain(); dry.gain.value = 0.14;
+    env.connect(dry); dry.connect(mix);
+
+    mix.connect(master);
+    osc.start(t); osc.stop(t + dur + 0.1);
+    breath.start(t);
+    nodes.push(osc, lfo, breath);
+  }
+
   function noise(t, dur, gain){
     const len = Math.floor(ctx.sampleRate * dur);
     const buf = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -534,8 +685,11 @@ const Engine = (()=>{
 
     const p = spec, sc = SCALES[p.scale], step = 60 / p.bpm / 2; // eighth notes
     const bars = 8, stepsPerBar = 8;
-    let i = 0;
     const start = ctx.currentTime + 0.08;
+
+    const voiceOn = !p.instrumentalOnly && p.register !== 'off';
+    const reg = REGISTERS[p.register] || REGISTERS.alto;
+    let sylIdx = 0, lastVocal = null;
 
     // schedule the whole loop up front (short enough to be safe)
     for (let bar=0; bar<bars; bar++){
@@ -559,13 +713,35 @@ const Engine = (()=>{
           const oct = p.r() < 0.22 ? 12 : 0;
           const note = p.root + 12 + sc[Math.floor(p.r()*sc.length)] + oct;
           const leadType = p.aggro ? 'square' : (p.dark ? 'sine' : 'triangle');
-          tone(mtof(note), t, step * (p.r()<0.25 ? 2.2 : 1.1), leadType, p.aggro ? 0.11 : 0.14, p.aggro ? 2600 : 4200);
+          const leadGain = (p.aggro ? 0.11 : 0.14) * (voiceOn ? 0.5 : 1); // make room for the voice
+          tone(mtof(note), t, step * (p.r()<0.25 ? 2.2 : 1.1), leadType, leadGain, p.aggro ? 2600 : 4200);
         }
         if (p.hats && s % 2 === 1) noise(t, 0.06, p.aggro ? 0.09 : 0.05);
         if (p.hats && (s === 0 || s === 4)) tone(70, t, 0.16, 'sine', p.aggro ? 0.38 : 0.28, 200);
         if (p.aggro && s === 4) noise(t, 0.22, 0.12); // snare-ish backbeat
       }
-      i++;
+
+      /* ---- vocal phrase for this bar ----
+         Sung notes are chord tones so the line stays consonant, the
+         syllables come straight from the words you typed, and each
+         phrase ends on a held note. */
+      if (voiceOn){
+        const patterns = [[0,2,4,6],[0,3,6],[0,4],[0,2,5],[2,4,6]];
+        const pat = patterns[(bar + p.seed) % patterns.length];
+        pat.forEach((s, n)=>{
+          if (p.r() > 0.88) return;                       // leave a little space
+          const t = barT + s*step;
+          const shape = [0,2,4,1,3][n % 5];
+          const note = chordRoot + sc[(degree + shape) % sc.length]
+                     + reg.oct - 12 + (p.r() < 0.14 ? 12 : 0);
+          const f = mtof(note);
+          const syl = p.syllables[sylIdx++ % p.syllables.length];
+          const last = n === pat.length - 1;
+          const dur = step * (last ? 2.8 : 1.7);
+          sing(f, t, dur, syl.v, p.aggro ? 0.22 : 0.19, p, lastVocal);
+          lastVocal = f;
+        });
+      }
     }
 
     const total = bars * stepsPerBar * step * 1000 + 400;
@@ -696,7 +872,8 @@ const STEP_TEXT = [
   "parsing intent · mood, energy, instrumentation",
   "choosing key and tempo",
   "composing motif and chord movement",
-  "rendering performance",
+  "writing the lyric line",
+  "rendering performance · band + voice",
   "mixing · done"
 ];
 
@@ -728,16 +905,32 @@ function generate(){
       el.classList.add('done');
       el.querySelector('.tick').textContent = '✓';
       if (i === els.length-1){
-        mainSpec = readPrompt(text);
+        mainSpec = specFor(text);
+        const voiceLabel = mainSpec.instrumentalOnly || mainSpec.register === 'off'
+          ? 'instrumental'
+          : (REGISTERS[mainSpec.register] || REGISTERS.alto).name + ' vocal';
         document.getElementById('trackName').innerHTML =
           escapeHtml(titleFrom(text)) + (mainSpec.aggro ? '<span class="flag">EXPLICIT</span>' : '');
         document.getElementById('trackInfo').textContent =
-          mainSpec.keyName + " · " + mainSpec.bpm + " bpm · 0:32 · wav + stems + mid"
-          + (mainSpec.aggro ? " · unfiltered" : "");
+          mainSpec.keyName + " · " + mainSpec.bpm + " bpm · " + voiceLabel
+          + " · 0:32 · wav + stems + mid" + (mainSpec.aggro ? " · unfiltered" : "");
+        const lyricEl = document.getElementById('trackLyric');
+        if (voiceLabel === 'instrumental'){ lyricEl.textContent = ''; }
+        else {
+          lyricEl.textContent = '♪ ' + mainSpec.syllables.slice(0,14).map(s=>s.txt).join(' — ');
+        }
         track.classList.add('on');
       }
     }, 260 * (i+1));
   });
+}
+/* prompt → spec, with the voice selector overriding what the prompt implied */
+function specFor(text){
+  const spec = readPrompt(text);
+  const choice = document.getElementById('voice').value;
+  if (choice !== 'auto') spec.register = choice;
+  else if (!spec.register) spec.register = spec.dark || spec.aggro ? 'alto' : 'tenor';
+  return spec;
 }
 function escapeHtml(s){
   return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -748,24 +941,26 @@ function titleFrom(text){
   return (pick || 'untitled').replace(/\b\w/g, c=>c.toUpperCase());
 }
 document.getElementById('gen').onclick = generate;
+document.getElementById('voice').addEventListener('change', ()=>{
+  if (document.getElementById('stage').classList.contains('on')) generate();
+});
 document.getElementById('prompt').addEventListener('keydown', e=>{ if (e.key === 'Enter') generate(); });
 
 document.getElementById('playMain').onclick = ()=>{
   if (!mainSpec) return;
   const text = document.getElementById('prompt').value.trim() || SUGGESTIONS[0];
-  const spec = readPrompt(text);
-  const started = Engine.play('main', spec, ()=> setIcon(playIconMain, false));
+  const started = Engine.play('main', specFor(text), ()=> setIcon(playIconMain, false));
   setIcon(playIconMain, started);
 };
 
 /* ---------- examples gallery ---------- */
 const EXAMPLES = [
-  { q:"a rainy Tuesday in Lisbon, slow piano, tape hiss", tags:["ambient","piano","72 bpm"], len:"0:48" },
-  { q:"sunrise over an empty motorway", tags:["synth","cinematic","104 bpm"], len:"1:12" },
-  { q:"the last five minutes of a good party", tags:["house","warm","124 bpm"], len:"0:56" },
-  { q:"found a letter from 1997", tags:["lo-fi","nostalgic","88 bpm"], len:"1:04" },
-  { q:"fuck this week, loud guitars, no chorus", tags:["explicit","punk","152 bpm"], len:"1:41", explicit:true },
-  { q:"angry breakup letter set to a drum machine", tags:["explicit","industrial","144 bpm"], len:"1:18", explicit:true }
+  { q:"a rainy Tuesday in Lisbon, slow piano, tape hiss", tags:["ambient","piano","alto vocal"], len:"0:48", voice:"alto" },
+  { q:"sunrise over an empty motorway", tags:["synth","cinematic","soprano vocal"], len:"1:12", voice:"soprano" },
+  { q:"the last five minutes of a good party", tags:["house","warm","tenor vocal"], len:"0:56", voice:"tenor" },
+  { q:"found a letter from 1997", tags:["lo-fi","nostalgic","instrumental"], len:"1:04", voice:"off" },
+  { q:"fuck this week, loud guitars, no chorus", tags:["explicit","punk","tenor vocal"], len:"1:41", explicit:true, voice:"tenor" },
+  { q:"a monk singing about the last bus home", tags:["choral","drone","bass vocal"], len:"1:26", voice:"bass" }
 ];
 const exGrid = document.getElementById('exGrid');
 EXAMPLES.forEach((ex, i)=>{
@@ -786,7 +981,9 @@ EXAMPLES.forEach((ex, i)=>{
   const btn = el.querySelector('.play');
   const icon = btn.querySelector('svg');
   btn.onclick = ()=>{
-    const started = Engine.play(id, readPrompt(ex.q), ()=> setIcon(icon, false));
+    const spec = readPrompt(ex.q);
+    spec.register = ex.voice;
+    const started = Engine.play(id, spec, ()=> setIcon(icon, false));
     document.querySelectorAll('.play svg').forEach(s=>{ if (s!==icon) setIcon(s,false); });
     setIcon(icon, started);
   };
