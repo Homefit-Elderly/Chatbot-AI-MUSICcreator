@@ -4,26 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Muse — the AI that writes songs and sings them</title>
-<meta name="description" content="Tell Muse what the song should be about. It writes the lyrics, then sings and plays them.">
+<meta name="description" content="Tell Muse what the song should be about, in any of five languages. It writes the lyrics and sings them.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎤</text></svg>">
 <style>
 /* ============================================================
    Muse — chat interface
    ============================================================ */
 :root{
-  --bg:#ffffff;
-  --side:#f9f9f9;
-  --bubble:#f4f4f4;
-  --ink:#0d0d0d;
-  --ink-2:#5d5d5d;
-  --ink-3:#8f8f8f;
-  --line:#e5e5e5;
-  --line-2:#ececec;
-  --accent:#5b4be0;
-  --accent-soft:#efedfd;
-  --hot:#e5533c;
-  --send:#0d0d0d;
-  --send-ink:#ffffff;
+  --bg:#ffffff; --side:#f9f9f9; --bubble:#f4f4f4;
+  --ink:#0d0d0d; --ink-2:#5d5d5d; --ink-3:#8f8f8f;
+  --line:#e5e5e5; --line-2:#ececec;
+  --accent:#5b4be0; --accent-soft:#efedfd; --hot:#e5533c;
+  --send:#0d0d0d; --send-ink:#ffffff;
   --font:"Söhne",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
 }
@@ -43,9 +35,7 @@ body{
   font-family:var(--font);font-size:16px;line-height:1.6;
   -webkit-font-smoothing:antialiased;overflow:hidden;
 }
-button{font-family:inherit}
-
-/* ---------- app shell ---------- */
+button,select,textarea{font-family:inherit}
 .app{display:flex;height:100vh;height:100dvh}
 
 /* ---------- sidebar ---------- */
@@ -59,7 +49,7 @@ button{font-family:inherit}
   background:linear-gradient(140deg,var(--accent),var(--hot));color:#fff;font-size:13px;
 }
 .newbtn{
-  display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px;border-radius:10px;
+  display:flex;align-items:center;gap:10px;width:100%;padding:10px;border-radius:10px;
   border:1px solid var(--line);background:transparent;color:var(--ink);
   font-size:14px;font-weight:500;cursor:pointer;text-align:left;
 }
@@ -68,16 +58,14 @@ button{font-family:inherit}
 .hist{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
 .hist button{
   width:100%;text-align:left;padding:8px 10px;border-radius:9px;border:0;background:transparent;
-  color:var(--ink-2);font-size:14px;cursor:pointer;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--ink-2);font-size:14px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.hist button:hover{background:var(--bubble);color:var(--ink)}
-.hist button.on{background:var(--bubble);color:var(--ink)}
+.hist button:hover,.hist button.on{background:var(--bubble);color:var(--ink)}
 .hist .empty{padding:8px 10px;font-size:13px;color:var(--ink-3)}
 .side-foot{border-top:1px solid var(--line-2);padding:10px 8px 4px;font-size:12.5px;color:var(--ink-3)}
 .side-foot a{color:inherit}
 
-/* ---------- main column ---------- */
+/* ---------- main ---------- */
 .main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
 .topbar{
   height:52px;flex:none;display:flex;align-items:center;gap:10px;padding:0 14px;
@@ -88,20 +76,23 @@ button{font-family:inherit}
   font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;padding:2px 7px;border-radius:5px;
   background:var(--accent-soft);color:var(--accent);
 }
+.topbar .spacer{flex:1}
+.topbar select{
+  border:1px solid var(--line);background:transparent;color:var(--ink-2);
+  border-radius:8px;padding:5px 9px;font-size:13px;cursor:pointer;font-weight:500;
+}
 .menu{display:none;background:none;border:0;color:var(--ink);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:8px}
-.menu:hover{background:var(--bubble)}
-
 .scroll{flex:1;overflow-y:auto;scroll-behavior:smooth}
 .thread{max-width:768px;margin:0 auto;padding:26px 20px 40px}
 
 /* ---------- empty state ---------- */
 .empty-state{
-  min-height:calc(100vh - 220px);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;text-align:center;gap:24px;padding:20px;
+  min-height:calc(100vh - 230px);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;gap:22px;padding:20px;
 }
 .empty-state h1{font-size:29px;font-weight:600;letter-spacing:-.01em;margin:0}
-.empty-state p{margin:0;color:var(--ink-2);font-size:15px;max-width:460px}
-.seeds{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:620px}
+.empty-state p{margin:0;color:var(--ink-2);font-size:15px;max-width:470px}
+.seeds{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:640px}
 @media(max-width:640px){.seeds{grid-template-columns:1fr}}
 .seed{
   text-align:left;padding:13px 15px;border-radius:14px;border:1px solid var(--line);
@@ -135,10 +126,22 @@ button{font-family:inherit}
 .dots span:nth-child(3){animation-delay:.3s}
 @keyframes bounce{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
 
-/* ---------- lyric sheet ---------- */
-.sheet{
-  border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:14px 0 16px;
+/* what the model understood */
+.read{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 14px}
+.read span{
+  font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:6px;
+  background:var(--accent-soft);color:var(--accent);
 }
+.read span.plain{background:var(--bubble);color:var(--ink-2)}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.quick button{
+  padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:transparent;
+  color:var(--ink);font-size:13.5px;cursor:pointer;
+}
+.quick button:hover{background:var(--bubble)}
+
+/* ---------- lyric sheet ---------- */
+.sheet{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:14px 0 16px}
 .sheet-head{
   padding:13px 16px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;
   gap:10px;flex-wrap:wrap;background:var(--side);
@@ -176,7 +179,6 @@ button{font-family:inherit}
 }
 .mini:hover{background:var(--bubble);color:var(--ink)}
 select.mini{padding:8px 10px}
-
 .player{
   display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;
   background:var(--side);border:1px solid var(--line);margin-top:14px;
@@ -203,7 +205,7 @@ canvas.viz{width:64px;height:34px;flex:none}
 .composer:focus-within{border-color:var(--ink-3)}
 .composer textarea{
   flex:1;border:0;outline:none;resize:none;background:transparent;color:var(--ink);
-  font-family:inherit;font-size:16px;line-height:1.5;max-height:180px;padding:9px 0;
+  font-size:16px;line-height:1.5;max-height:180px;padding:9px 0;
 }
 .composer textarea::placeholder{color:var(--ink-3)}
 .sendbtn{
@@ -223,28 +225,31 @@ canvas.viz{width:64px;height:34px;flex:none}
 </head>
 <body>
 <div class="app">
-
   <aside class="sidebar hide" id="sidebar">
     <div class="brand"><span class="mark">♪</span> Muse</div>
     <button class="newbtn" id="newBtn">＋ New song</button>
     <div class="hist-label">Songs</div>
     <div class="hist" id="hist"><div class="empty">Nothing yet.</div></div>
-    <div class="side-foot">
-      Muse 0.4 · open source ·
-      <a href="https://github.com/your-username/muse">GitHub</a>
-    </div>
+    <div class="side-foot">Muse 0.6 · open source · <a href="https://github.com/your-username/muse">GitHub</a></div>
   </aside>
 
   <main class="main">
     <div class="topbar">
       <button class="menu" id="menuBtn" aria-label="Menu">☰</button>
-      <span>Muse <span class="model">0.4</span></span>
+      <span>Muse <span class="model">0.6</span></span>
       <span class="tag">WRITES · SINGS</span>
+      <span class="spacer"></span>
+      <select id="langSel" title="Language of the lyrics">
+        <option value="auto" selected>Language: auto</option>
+        <option value="en">English</option>
+        <option value="pt">Português</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="it">Italiano</option>
+      </select>
     </div>
 
-    <div class="scroll" id="scroll">
-      <div class="thread" id="thread"></div>
-    </div>
+    <div class="scroll" id="scroll"><div class="thread" id="thread"></div></div>
 
     <div class="composer-wrap">
       <div class="composer">
@@ -253,19 +258,19 @@ canvas.viz{width:64px;height:34px;flex:none}
           <svg viewBox="0 0 24 24"><path d="M12 4l7 7h-4.5v9h-5v-9H5z"/></svg>
         </button>
       </div>
-      <div class="disclaimer">Muse writes the lyrics and sings them in your browser. Everything you hear is synthesized live — no audio files, no server.</div>
+      <div class="disclaimer">Muse writes the lyrics and sings them in your browser — five languages, no audio files, no server.</div>
     </div>
   </main>
 </div>
 
 <script>
-/* ============================================================
-   Muse — an AI that writes a song from your idea and sings it.
-   Pure front-end: lyrics are generated from your words, and the
-   voice is a formant synthesizer driven by the Web Audio API.
-   ============================================================ */
+/* ================================================================
+   MUSE 0.6
+   An AI that reads what you asked for, writes a song in one of five
+   languages, and sings it with a formant voice — all in the browser.
+   ================================================================ */
 
-/* ---------- deterministic randomness ---------- */
+/* ---------------- 0 · utilities ---------------- */
 function hashString(s){
   let h = 2166136261;
   for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h,16777619); }
@@ -280,422 +285,1005 @@ function makeRng(seed){
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
-const pick = (r, arr) => arr[Math.floor(r()*arr.length)];
-function shuffled(r, arr){
-  const a = arr.slice();
-  for (let i=a.length-1;i>0;i--){ const j = Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
+const pick = (r,a) => a[Math.floor(r()*a.length)];
+function shuffled(r,a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+const setOf = s => new Set(s.split(' '));
+
+/* ================================================================
+   1 · LANGUAGES
+   Each language brings its own stop-words, images, line templates and
+   spelling rules. Images carry their own article and adjectives are
+   invariable phrases, so the generated lines stay grammatical.
+   ================================================================ */
+const LANGS = {
+
+/* ---------------------------- ENGLISH ---------------------------- */
+en:{
+  label:'English', tongue:'English',
+  stop:setOf("a an the about of for on in at to and or but with without my your his her its our their this that these those is are was were be been am i you he she it we they me him them us song make write create sing sings singing music track tune please can could would like want need very really just some any all more most into from as if then than so it's im i'm dont don't after before again still when while because over under through every never always another other gonna wanna maybe kinda sorta lot lots made makes bit thing things something someone got get"),
+  small:setOf("a an the to in of at on and or for with from is it my your"),
+  hint:setOf("the and you with about that this was when have from they what there would could night love heart back home"),
+  voices:{soprano:'a soprano',alto:'an alto',tenor:'a tenor',bass:'a bass'},
+  genre:{
+    dark:['slow indie ballad','late-night piano song','ambient folk','slowcore hymn','torch song'],
+    bright:['warm indie pop song','summer soul number','open-road anthem','folk-pop song'],
+    aggro:['punk song','industrial stomp','garage rock number','post-punk track']
+  },
+  bank:{
+    dark:{img:['the rain','the streetlight','the platform','the window','the coat','the ceiling','the ocean','December','the headlights','the hallway','the payphone','the kitchen light','the last bus','the empty chair','the tide'],
+          adj:['quiet','cold','half-empty','honest','tired','slow','open','unfinished','patient'],
+          verb:['hold','carry','bury','keep','count','follow','swallow','answer','forgive'],
+          ing:['holding on','counting','waiting','driving','burning','leaving','pretending']},
+    bright:{img:['the morning','the kitchen','the radio','the sunlight','the harbour','the open road','the front step','the summer','the back seat','the first train','the orange sky','the tin roof','June'],
+          adj:['golden','loud','easy','wide open','ridiculous','young','bright','lucky','warm'],
+          verb:['keep','carry','follow','hold','call','chase','deserve','begin'],
+          ing:['dancing','laughing','driving','running','singing','waking up','falling']},
+    aggro:{img:['the broken glass','the red light','the front door','the amplifier','the engine','the pavement','the siren','the last straw','the cheap lock','the bad year'],
+          adj:['done','loud','wired','honest','ugly','finished','out of patience'],
+          verb:['break','burn','leave','drop','take','forget','wreck'],
+          ing:['screaming','breaking','burning','leaving','driving','shouting']}
+  },
+  verse:{
+    dark:["I left {img} on for you","Nobody warned me about {kw}","There's something {adj} in the back of my head",
+      "You said {kw} and I heard everything else","I {verb} {kw} like it still belongs to me","{img} already knows my name",
+      "{ing} in the dark till the morning comes","Every {kw} sounds like a door closing","I keep {kw} where {img} can't reach",
+      "It's {adj} out here without {kw}","Somebody's {ing} and it isn't me","{img} is {adj} tonight and so am I",
+      "I counted {img} and I lost {kw}","Nothing here is {adj}, not even {img}",
+      "It's later than it looks to me","Everything ends up the same","I never say your name",
+      "And the whole street knows","{img} is the last thing I'll see"],
+    bright:["Woke up {ing} about {kw}","{img} is {adj} and I'm not arguing","You brought {kw} and I brought the noise",
+      "Nobody here is {ing} alone tonight","I'd {verb} {kw} all over again","There's something {adj} with your name on it",
+      "We were {ing} before we knew the words","Give me {kw} and {img} in the morning","{img} says yes and I believe it",
+      "Everything good started with {kw}","I'm {adj} in a way I can't explain","Put {kw} in the window where it shows",
+      "And you're still standing here with me","Everything ends up the same","I like the way you say my name",
+      "And the whole street knows"],
+    aggro:["I'm done {ing} for {kw}","Take {kw}, I kept {img}","Say it again to my face this time",
+      "You want the {adj} version, here it is","I'll {verb} {img} before I call you back","Nobody's {ing}, that's the whole problem",
+      "{img} went first and {kw} went after","I'm {adj} and I'm not lowering my voice","Keep {kw}, I never wanted it clean",
+      "You built {img} and I'm not living in it","Every {kw} costs me something now","Don't tell me {img} was an accident"]
+  },
+  chorus:{
+    dark:["So let {kw} go","I'm not asking twice tonight","And {img} keeps falling anyway","Say it slow, say it {adj}",
+      "I'll be here when {img} runs out","Nothing turns around at this hour","Hold on to {kw} for me",
+      "And it's colder than it looks","Come back and say it to me","Say it again with my name"],
+    bright:["So hold {kw} up","We're not going home tonight","And {img} keeps on going anyway","Say it loud, say it {adj}",
+      "I'll be here when {img} comes back","Everything starts at this hour","Hold on to {kw} for me",
+      "And it's better than it looks","Come back and say it to me","Say it again with my name"],
+    aggro:["So burn {kw} down","I'm not asking twice tonight","And {img} can stay where it fell","Say it {adj} or don't say it at all",
+      "I'll be gone before {img} lands","Nothing gets fixed at this hour","You can keep {kw} for all I care"]
+  },
+  bridge:{
+    dark:["And I still {verb} it","Nobody says {kw} out loud","{img}, {img}, and {kw}","It was never about {kw}"],
+    bright:["And I still {verb} it","Say {kw} out loud","{img}, {img}, and {kw}","It was always about {kw}"],
+    aggro:["And I'm still {ing}","Say {kw} out loud then","{img}, {img}, and {kw}","It was never about {kw}"]
+  },
+  say:{
+    make:(g,k,b,v)=>`Here's what I'm making: a ${g} in ${k} at ${b} bpm, sung by ${v}.`,
+    about:(t,f,h)=>`It's about ${t} — the arrangement ${f}, and the whole thing turns on the line "${h}".`,
+    words:'Here are the words:',
+    feel:{dark:'keeps the verses close and quiet, then opens up on the chorus',
+          bright:'stays warm the whole way through and lifts on the chorus',
+          aggro:'starts annoyed and stops pretending by the second verse'},
+    edited:b=>`Done — ${b}. Same idea, new take:`,
+    thin:"I can write that, but one more detail will make it much better. Which is it?",
+    thinOpts:["Looking back on it","Right in the middle of it","It made me angry","Just surprise me"],
+    create:'▶ Create the song', again:'↻ Different words', composing:'● Composing…'
+  }
+},
+
+/* -------------------- PORTUGUÊS (europeu) -------------------- */
+pt:{
+  label:'Português', tongue:'Portuguese',
+  stop:setOf("o a os as um uma uns umas de do da dos das em no na nos nas ao aos à às por para com sem sobre que se e ou mas eu tu ele ela nós vós eles elas me te lhe nos vos meu minha teu tua seu sua nosso nossa isto isso aquilo é são era eram ser estar está estão música canção musica cancao faz fazer escreve escrever cria criar canta cantar sobre por favor pode podes queria quero muito mesmo já ainda mais menos como quando porque então também só até depois antes outra outro coisa coisas alguém algo tipo"),
+  small:setOf("o a os as um uma de do da dos das em no na e ou por para com sem que"),
+  hint:setOf("não uma você muito então também porque coração canção noite saudade comboio ainda nunca sempre agora chuva estás estou tenho"),
+  voices:{soprano:'uma soprano',alto:'uma contralto',tenor:'um tenor',bass:'um baixo'},
+  genre:{
+    dark:['balada lenta','fado moderno','canção de piano à noite','folk ambiente'],
+    bright:['pop luminoso','canção de verão','hino de estrada aberta','folk-pop morno'],
+    aggro:['punk directo','rock de garagem','pós-punk seco']
+  },
+  bank:{
+    dark:{img:['a chuva','o candeeiro','a janela','o comboio das seis','o casaco','o tecto','o mar','Dezembro','o corredor','a cozinha às escuras','o último autocarro','a cadeira vazia','a maré'],
+          adj:['em silêncio','a frio','pela metade','a sério','sem pressa','por acabar','à toa','de mais'],
+          verb:['guardo','carrego','conto','sigo','engulo','respondo','perdoo'],
+          ing:['à espera','a contar','a conduzir','a fingir','a sair','a arder']},
+    bright:{img:['a manhã','a cozinha','o rádio','o sol','o cais','a estrada','o degrau da porta','o verão','o banco de trás','o primeiro comboio','o céu cor de laranja','Junho'],
+          adj:['a sério','às claras','sem pressa','à toa','de repente','em alta'],
+          verb:['guardo','levo','sigo','chamo','procuro','começo'],
+          ing:['a dançar','a rir','a conduzir','a correr','a cantar','a acordar']},
+    aggro:{img:['o vidro partido','o semáforo','a porta da frente','o amplificador','o motor','o passeio','a sirene','a última gota','o ano mau'],
+          adj:['sem paciência','a sério','às claras','de vez','em alta'],
+          verb:['parto','queimo','largo','levo','esqueço'],
+          ing:['aos gritos','a partir tudo','a arder','a sair','a conduzir']}
+  },
+  verse:{
+    dark:["Deixei {img} à espera de ti","Ninguém me falou de {kw}","Tenho {img} na cabeça outra vez",
+      "Disseste {kw} e eu ouvi outra coisa","Guardo {kw} como se ainda fosse meu","{img} já sabe o meu nome",
+      "Fico acordado até {img} passar","Cada {kw} soa a porta a fechar","Guardo {kw} onde ninguém chega",
+      "Está tudo {adj} sem {kw}","Alguém está {ing} e não sou eu","{img} está {adj} esta noite, e eu também",
+      "Contei {img} e perdi {kw}","Nada aqui é {adj}, nem {img}",
+      "É mais tarde do que parece","Ninguém diz o meu nome","Fica tudo na mesma",
+      "E a rua toda sabe","Fico à espera de {kw} outra vez"],
+    bright:["Acordei {ing} por causa de {kw}","{img} está {adj} e eu não discuto","Trouxeste {kw} e eu trouxe o barulho",
+      "Ninguém aqui está {ing} sozinho","Fazia {kw} outra vez sem pensar","Há qualquer coisa {adj} com o teu nome",
+      "Já estávamos {ing} antes de saber a letra","Dá-me {kw} e {img} de manhã","{img} diz que sim e eu acredito",
+      "Tudo o que presta começou com {kw}","Estou {adj} de uma maneira que não explico"],
+    aggro:["Estou farto de andar {ing} por {kw}","Fica com {kw}, eu fiquei com {img}","Diz outra vez, mas olha para mim",
+      "Queres a versão {adj}? É esta","Eu {verb} {img} antes de te ligar de volta","Ninguém está {ing}, o problema é esse",
+      "{img} foi primeiro e {kw} foi atrás","Estou {adj} e não baixo a voz","Fica com {kw}, nunca quis isto limpo",
+      "Construíste {img} e eu não vivo aí","Cada {kw} custa-me alguma coisa"]
+  },
+  chorus:{
+    dark:["Então deixa {kw} ir","Não peço duas vezes esta noite","E {img} continua igual","Diz devagar, diz {adj}",
+      "Fico aqui até {img} acabar","Nada muda a esta hora","Guarda {kw} por mim"],
+    bright:["Então segura {kw}","Hoje não vamos para casa","E {img} continua na mesma","Diz alto, diz {adj}",
+      "Fico aqui até {img} voltar","Tudo começa a esta hora","Guarda {kw} por mim"],
+    aggro:["Então queima {kw}","Não peço duas vezes esta noite","E {img} que fique onde caiu","Diz {adj} ou não digas nada",
+      "Vou-me embora antes de {img} cair","Nada se arranja a esta hora","Fica com {kw}, tanto faz"]
+  },
+  bridge:{
+    dark:["E eu ainda {verb}","Ninguém diz {kw} em voz alta","{img}, {img}, e {kw}","Nunca foi por causa de {kw}"],
+    bright:["E eu ainda {verb}","Diz {kw} em voz alta","{img}, {img}, e {kw}","Foi sempre por causa de {kw}"],
+    aggro:["E eu continuo {ing}","Diz {kw} em voz alta, então","{img}, {img}, e {kw}","Nunca foi por causa de {kw}"]
+  },
+  say:{
+    make:(g,k,b,v)=>`É isto que vou fazer: uma ${g} em ${k}, a ${b} bpm, cantada por ${v}.`,
+    about:(t,f,h)=>`É sobre ${t} — o arranjo ${f}, e tudo assenta no verso "${h}".`,
+    words:'A letra:',
+    feel:{dark:'mantém os versos baixos e abre no refrão',
+          bright:'fica morno do princípio ao fim e levanta no refrão',
+          aggro:'começa irritado e deixa de fingir no segundo verso'},
+    edited:b=>`Feito — ${b}. Mesma ideia, outra versão:`,
+    thin:"Consigo escrever isso, mas com mais um pormenor fica muito melhor. Qual é?",
+    thinOpts:["A olhar para trás","Ainda a meio disto","Deixou-me com raiva","Surpreende-me"],
+    create:'▶ Criar a canção', again:'↻ Outra letra', composing:'● A compor…'
+  }
+},
+/* ---------------------------- ESPAÑOL ---------------------------- */
+es:{
+  label:'Español', tongue:'Spanish',
+  stop:setOf("el la los las un una unos unas de del en al a por para con sin sobre que si y o pero yo tu él ella nosotros ellos me te le nos mi mis tu tus su sus esto eso aquello es son era eran ser estar está están canción cancion música musica haz hacer escribe escribir crea crear canta cantar por favor puedes quiero muy ya todavía más menos como cuando porque entonces también solo hasta después antes otra otro cosa cosas alguien algo"),
+  small:setOf("el la los las un una de del en al a por para con sin que y o"),
+  hint:setOf("del las los muy pero está ella años canción corazón siempre nunca ahora entonces también hermano hermana chico noche"),
+  voices:{soprano:'una soprano',alto:'una contralto',tenor:'un tenor',bass:'un bajo'},
+  genre:{dark:['balada lenta','canción de piano nocturna','folk de madrugada'],
+         bright:['pop luminoso','canción de verano','himno de carretera'],
+         aggro:['punk directo','rock de garaje','post-punk seco']},
+  bank:{
+    dark:{img:['la lluvia','la farola','la ventana','el último tren','el abrigo','el techo','el mar','diciembre','el pasillo','la cocina a oscuras','la silla vacía'],
+          adj:['en silencio','a medias','en serio','sin prisa','sin terminar','de más'],
+          verb:['guardo','llevo','cuento','sigo','contesto','perdono'],
+          ing:['esperando','contando','conduciendo','fingiendo','ardiendo','saliendo']},
+    bright:{img:['la mañana','la cocina','la radio','el sol','el puerto','la carretera','el verano','el asiento de atrás','el primer tren','el cielo naranja','junio'],
+          adj:['en serio','a lo claro','sin prisa','en su sitio','en alto'],
+          verb:['guardo','llevo','sigo','llamo','busco','empiezo'],
+          ing:['bailando','riendo','conduciendo','corriendo','cantando','despertando']},
+    aggro:{img:['el cristal roto','el semáforo','la puerta','el amplificador','el motor','la acera','la sirena','la última gota','el año malo'],
+          adj:['sin paciencia','en serio','de una vez','en alto'],
+          verb:['rompo','quemo','suelto','olvido'],
+          ing:['gritando','rompiendo','ardiendo','saliendo','conduciendo']}
+  },
+  verse:{
+    dark:["Dejé {img} esperándote","Nadie me habló de {kw}","Tengo {img} otra vez en la cabeza",
+      "Dijiste {kw} y yo oí otra cosa","Guardo {kw} como si aún fuera mío","{img} ya se sabe mi nombre",
+      "Me quedo despierto hasta que pase {img}","Cada {kw} suena a puerta cerrándose","Está todo {adj} sin {kw}",
+      "Alguien está {ing} y no soy yo","{img} está {adj} esta noche, y yo también","No hay nada {adj} aquí, ni {img}"],
+    bright:["Me desperté {ing} por {kw}","{img} está {adj} y no discuto","Trajiste {kw} y yo traje el ruido",
+      "Nadie está {ing} solo esta noche","Haría {kw} otra vez sin pensarlo","Hay algo {adj} con tu nombre",
+      "Ya estábamos {ing} antes de saber la letra","Dame {kw} y {img} por la mañana","{img} dice que sí y le creo",
+      "Todo lo bueno empezó con {kw}"],
+    aggro:["Estoy harto de andar {ing} por {kw}","Quédate {kw}, yo me quedé {img}","Dilo otra vez, pero mírame",
+      "¿Quieres la versión {adj}? Es ésta","Voy a {verb} {img} antes de llamarte","Nadie está {ing}, ése es el problema",
+      "{img} se fue primero y {kw} detrás","Estoy {adj} y no bajo la voz","Quédate {kw}, nunca lo quise limpio"]
+  },
+  chorus:{
+    dark:["Así que deja ir {kw}","No lo pido dos veces esta noche","Y {img} sigue igual","Dilo despacio, dilo {adj}",
+      "Me quedo hasta que {img} se acabe","Nada cambia a esta hora"],
+    bright:["Así que agarra {kw}","Hoy no volvemos a casa","Y {img} sigue adelante igual","Dilo alto, dilo {adj}",
+      "Me quedo hasta que {img} vuelva","Todo empieza a esta hora"],
+    aggro:["Así que quema {kw}","No lo pido dos veces esta noche","Y {img} que se quede donde cayó","Dilo {adj} o no digas nada",
+      "Me voy antes de que caiga {img}","Nada se arregla a esta hora"]
+  },
+  bridge:{
+    dark:["Y todavía {verb}","Nadie dice {kw} en voz alta","{img}, {img}, y {kw}"],
+    bright:["Y todavía {verb}","Dilo: {kw}, en voz alta","{img}, {img}, y {kw}"],
+    aggro:["Y sigo {ing}","Dilo en voz alta, entonces","{img}, {img}, y {kw}"]
+  },
+  say:{
+    make:(g,k,b,v)=>`Esto es lo que voy a hacer: una ${g} en ${k}, a ${b} bpm, cantada por ${v}.`,
+    about:(t,f,h)=>`Va de ${t} — el arreglo ${f}, y todo se apoya en el verso "${h}".`,
+    words:'La letra:',
+    feel:{dark:'mantiene las estrofas bajas y se abre en el estribillo',
+          bright:'se queda cálido de principio a fin y levanta en el estribillo',
+          aggro:'empieza molesto y deja de disimular en la segunda estrofa'},
+    edited:b=>`Hecho — ${b}. Misma idea, otra versión:`,
+    thin:"Puedo escribir eso, pero con un detalle más queda mucho mejor. ¿Cuál?",
+    thinOpts:["Mirando atrás","Todavía dentro de ello","Me dio rabia","Sorpréndeme"],
+    create:'▶ Crear la canción', again:'↻ Otra letra', composing:'● Componiendo…'
+  }
+},
+
+/* ---------------------------- FRANÇAIS ---------------------------- */
+fr:{
+  label:'Français', tongue:'French',
+  stop:setOf("le la les un une des du de au aux à en dans sur pour par avec sans que qui si et ou mais je tu il elle nous vous ils elles me te se mon ma mes ton ta tes son sa ses notre nos ce cet cette ces est sont était étaient être avoir chanson musique fais faire écris écrire crée créer chante chanter s'il plaît peux veux très déjà encore plus moins comme quand parce alors aussi jusqu'à après avant autre chose quelqu'un quelque"),
+  small:setOf("le la les un une des du de au aux à en dans sur pour par avec sans que et ou"),
+  hint:setOf("les des une pour avec dans très parce alors aussi nuit coeur cœur jamais toujours c'est j'ai qu'il elle chanson"),
+  voices:{soprano:'une soprano',alto:'une alto',tenor:'un ténor',bass:'une basse'},
+  genre:{dark:['ballade lente','chanson de piano nocturne','folk de fin de nuit'],
+         bright:['pop lumineuse','chanson d\'été','hymne de route'],
+         aggro:['punk sec','rock de garage','post-punk']},
+  bank:{
+    dark:{img:['la pluie','le lampadaire','la fenêtre','le dernier train','le manteau','le plafond','la mer','décembre','le couloir','la cuisine dans le noir','la chaise vide'],
+          adj:['en silence','à moitié','pour de vrai','comme avant','à peine'],
+          verb:['garde','porte','compte','suis','réponds','pardonne'],
+          ing:['à attendre','à compter','à conduire','à faire semblant','à brûler','à partir']},
+    bright:{img:['le matin','la cuisine','la radio','le soleil','le port','la route','l\'été','la banquette arrière','le premier train','le ciel orange','juin'],
+          adj:['pour de vrai','au grand jour','sans hâte','d\'un coup'],
+          verb:['garde','emmène','suis','appelle','cherche','commence'],
+          ing:['à danser','à rire','à conduire','à courir','à chanter','à me réveiller']},
+    aggro:{img:['le verre cassé','le feu rouge','la porte','l\'ampli','le moteur','le trottoir','la sirène','la goutte de trop'],
+          adj:['à bout','pour de vrai','une bonne fois'],
+          verb:['casse','brûle','lâche','oublie'],
+          ing:['à crier','à tout casser','à brûler','à partir']}
+  },
+  verse:{
+    dark:["J'ai gardé {img} pour toi","Personne ne m'a parlé de {kw}","J'ai encore {img} dans la tête",
+      "Tu as dit {kw} et j'ai entendu autre chose","Je garde {kw} comme si c'était encore à moi","{img} connaît déjà mon nom",
+      "Je reste debout jusqu'à ce que {img} passe","Chaque {kw} sonne comme une porte qui ferme","Tout est {adj} sans {kw}",
+      "Quelqu'un est {ing} et ce n'est pas moi","{img} est {adj} ce soir, et moi aussi","Rien ici n'est {adj}, même pas {img}"],
+    bright:["Je me suis réveillé {ing} à cause de {kw}","{img} est {adj} et je ne discute pas","Tu as apporté {kw} et moi le bruit",
+      "Personne n'est {ing} tout seul ce soir","Je referais {kw} sans réfléchir","Il y a quelque chose {adj} à ton nom",
+      "On était déjà {ing} avant de connaître les mots","Donne-moi {kw} et {img} au matin","{img} dit oui et je le crois",
+      "Tout ce qui est bien a commencé par {kw}"],
+    aggro:["J'en ai fini d'être {ing} pour {kw}","Garde {kw}, moi j'ai gardé {img}","Redis-le, mais regarde-moi",
+      "Tu veux la version {adj} ? La voilà","Je vais {verb} {img} avant de te rappeler","Personne n'est {ing}, c'est ça le problème",
+      "{img} est parti d'abord et {kw} ensuite","Je suis {adj} et je ne baisse pas la voix","Garde {kw}, je n'ai jamais voulu que ce soit propre"]
+  },
+  chorus:{
+    dark:["Alors laisse {kw} partir","Je ne demande pas deux fois ce soir","Et {img} continue pareil","Dis-le lentement, dis-le {adj}",
+      "Je reste jusqu'à ce que {img} s'arrête","Rien ne change à cette heure"],
+    bright:["Alors tiens {kw}","On ne rentre pas ce soir","Et {img} continue quand même","Dis-le fort, dis-le {adj}",
+      "Je reste jusqu'à ce que {img} revienne","Tout commence à cette heure"],
+    aggro:["Alors brûle {kw}","Je ne demande pas deux fois ce soir","Et {img} peut rester où il est tombé","Dis-le {adj} ou ne dis rien",
+      "Je serai parti avant que {img} tombe","Rien ne se répare à cette heure"]
+  },
+  bridge:{
+    dark:["Et je {verb} encore","Personne ne dit {kw} à voix haute","{img}, {img}, et {kw}"],
+    bright:["Et je {verb} encore","Dis {kw} à voix haute","{img}, {img}, et {kw}"],
+    aggro:["Et je suis encore {ing}","Dis-le à voix haute, alors","{img}, {img}, et {kw}"]
+  },
+  say:{
+    make:(g,k,b,v)=>`Voilà ce que je vais faire : une ${g} en ${k}, à ${b} bpm, chantée par ${v}.`,
+    about:(t,f,h)=>`Ça parle de ${t} — l'arrangement ${f}, et tout tient sur le vers « ${h} ».`,
+    words:'Les paroles :',
+    feel:{dark:'garde les couplets bas et s\'ouvre au refrain',
+          bright:'reste chaud du début à la fin et décolle au refrain',
+          aggro:'commence agacé et arrête de faire semblant au deuxième couplet'},
+    edited:b=>`Voilà — ${b}. Même idée, autre version :`,
+    thin:"Je peux écrire ça, mais un détail de plus et ce sera bien meilleur. Lequel ?",
+    thinOpts:["En regardant en arrière","Encore en plein dedans","Ça m'a mis en colère","Surprends-moi"],
+    create:'▶ Créer la chanson', again:'↻ Autres paroles', composing:'● Composition…'
+  }
+},
+
+/* ---------------------------- ITALIANO ---------------------------- */
+it:{
+  label:'Italiano', tongue:'Italian',
+  stop:setOf("il lo la i gli le un uno una di del della dei delle in nel nella a al alla da dal per con senza su che se e o ma io tu lui lei noi voi loro mi ti si ci vi mio mia tuo tua suo sua questo quello è sono era erano essere avere canzone musica fai fare scrivi scrivere crea creare canta cantare per favore puoi voglio molto già ancora più meno come quando perché allora anche solo fino dopo prima altro cosa cose qualcuno qualcosa"),
+  small:setOf("il lo la i gli le un uno una di del della in nel a al da per con senza che e o"),
+  hint:setOf("mia mio sua suo della nella degli gli sono anche perché più già così canzone insieme cuore nonna ragazza cucina stasera"),
+  voices:{soprano:'una soprano',alto:'un contralto',tenor:'un tenore',bass:'un basso'},
+  genre:{dark:['ballata lenta','canzone per pianoforte notturna','folk di fine notte'],
+         bright:['pop luminoso','canzone d\'estate','inno da strada'],
+         aggro:['punk secco','rock da garage','post-punk']},
+  bank:{
+    dark:{img:['la pioggia','il lampione','la finestra','l\'ultimo treno','il cappotto','il soffitto','il mare','dicembre','il corridoio','la cucina al buio','la sedia vuota'],
+          adj:['in silenzio','a metà','sul serio','senza fretta','non finito'],
+          verb:['tengo','porto','conto','seguo','rispondo','perdono'],
+          ing:['ad aspettare','a contare','a guidare','a fingere','a bruciare','ad andarmene']},
+    bright:{img:['la mattina','la cucina','la radio','il sole','il porto','la strada','l\'estate','il sedile dietro','il primo treno','il cielo arancione','giugno'],
+          adj:['sul serio','alla luce','senza fretta','di colpo'],
+          verb:['tengo','porto','seguo','chiamo','cerco','comincio'],
+          ing:['a ballare','a ridere','a guidare','a correre','a cantare','a svegliarmi']},
+    aggro:{img:['il vetro rotto','il semaforo','la porta','l\'amplificatore','il motore','il marciapiede','la sirena','l\'ultima goccia'],
+          adj:['senza pazienza','sul serio','una volta per tutte'],
+          verb:['rompo','brucio','mollo','dimentico'],
+          ing:['a urlare','a rompere tutto','a bruciare','ad andarmene']}
+  },
+  verse:{
+    dark:["Ho lasciato {img} acceso per te","Nessuno mi ha parlato di {kw}","Ho ancora {img} in testa",
+      "Hai detto {kw} e io ho sentito altro","Tengo {kw} come se fosse ancora mio","{img} sa già il mio nome",
+      "Resto sveglio finché {img} non passa","Ogni {kw} suona come una porta che si chiude","È tutto {adj} senza {kw}",
+      "Qualcuno è {ing} e non sono io","{img} è {adj} stasera, e anch'io","Qui non c'è niente {adj}, nemmeno {img}"],
+    bright:["Mi sono svegliato {ing} per {kw}","{img} è {adj} e non discuto","Hai portato {kw} e io il rumore",
+      "Nessuno qui è {ing} da solo stasera","Rifarei {kw} senza pensarci","C'è qualcosa {adj} col tuo nome",
+      "Eravamo già {ing} prima di sapere le parole","Dammi {kw} e {img} al mattino","{img} dice di sì e io ci credo",
+      "Tutto quello che vale è cominciato con {kw}"],
+    aggro:["Ho chiuso con l'essere {ing} per {kw}","Tienti {kw}, io mi sono tenuto {img}","Ridillo, ma guardami in faccia",
+      "Vuoi la versione {adj}? Eccola","{verb} {img} prima di richiamarti","Nessuno è {ing}, il problema è questo",
+      "{img} è andato prima e {kw} dopo","Sono {adj} e non abbasso la voce","Tienti {kw}, non l'ho mai voluto pulito"]
+  },
+  chorus:{
+    dark:["Allora lascia andare {kw}","Non lo chiedo due volte stasera","E {img} continua uguale","Dillo piano, dillo {adj}",
+      "Resto finché {img} non finisce","Niente cambia a quest'ora"],
+    bright:["Allora tieni {kw}","Stasera non torniamo a casa","E {img} va avanti lo stesso","Dillo forte, dillo {adj}",
+      "Resto finché {img} non torna","Tutto comincia a quest'ora"],
+    aggro:["Allora brucia {kw}","Non lo chiedo due volte stasera","E {img} può restare dov'è caduto","Dillo {adj} o non dirlo affatto",
+      "Sarò andato prima che {img} cada","Niente si aggiusta a quest'ora"]
+  },
+  bridge:{
+    dark:["E ancora {verb}","Nessuno dice {kw} ad alta voce","{img}, {img}, e {kw}"],
+    bright:["E ancora {verb}","Dillo ad alta voce: {kw}","{img}, {img}, e {kw}"],
+    aggro:["E sono ancora {ing}","Dillo ad alta voce, allora","{img}, {img}, e {kw}"]
+  },
+  say:{
+    make:(g,k,b,v)=>`Ecco cosa faccio: una ${g} in ${k}, a ${b} bpm, cantata da ${v}.`,
+    about:(t,f,h)=>`Parla di ${t} — l'arrangiamento ${f}, e tutto sta sul verso "${h}".`,
+    words:'Il testo:',
+    feel:{dark:'tiene bassi i versi e si apre sul ritornello',
+          bright:'resta caldo dall\'inizio alla fine e si alza sul ritornello',
+          aggro:'comincia infastidito e smette di fingere alla seconda strofa'},
+    edited:b=>`Fatto — ${b}. Stessa idea, altra versione:`,
+    thin:"Posso scriverlo, ma con un dettaglio in più viene molto meglio. Quale?",
+    thinOpts:["Guardando indietro","Ancora dentro","Mi ha fatto arrabbiare","Sorprendimi"],
+    create:'▶ Crea la canzone', again:'↻ Altro testo', composing:'● Sto componendo…'
+  }
+}
+};
+/* ================================================================
+   2 · UNDERSTANDING THE REQUEST
+   Separate the topic from the instructions, in any of the five
+   languages, and say back what was understood.
+   ================================================================ */
+const strip = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+
+/* --- which language is this? --- */
+function detectLang(text){
+  const t = ' ' + text.toLowerCase() + ' ';
+  const score = {en:0, pt:0, es:0, fr:0, it:0};
+  for (const [code,L] of Object.entries(LANGS)){
+    L.hint.forEach(w=>{ if (t.includes(' '+w+' ')) score[code] += 2.5; });
+    L.stop.forEach(w=>{ if (w.length>2 && t.includes(' '+w+' ')) score[code] += 1; });
+  }
+  if (/[ãõ]|ç[aou]|nh|lh|ções/.test(t)) score.pt += 5;
+  if (/ñ|¿|¡|ll[aeiou]/.test(t))        score.es += 5;
+  if (/œ|[êâîû]|\b[ldjmnst]'|qu'/.test(t)) score.fr += 4;
+  if (/gli|gn[aeiou]|\bè\b|zione/.test(t)) score.it += 4;
+  if (/[àáéíóúâô]/.test(t)) { score.pt += 1.5; score.es += 1; score.it += 1; score.fr += 1; }
+  let best = 'en', bv = 0.9;                       // English unless something beats it
+  for (const c in score) if (score[c] > bv){ bv = score[c]; best = c; }
+  return best;
 }
 
-/* ---------- reading the idea ---------- */
-const STOP = new Set(("a an the about of for on in at to and or but with without my your his her its our their this that these those is are was were be been am i you he she it we they me him them us song about make write create sing sings singing music track tune song's please can could would should like want need very really just some any all more most into from as if then than so it's im i'm dont don't after before again still when while because over under through every never always another other gonna wanna maybe kinda sorta lot lots make made makes bit").split(" "));
+/* --- constraint vocabulary, all five languages in one table --- */
+const ASK = {
+  lang:[[/\b(in|em|en|auf)?\s*(english|ingl[eê]s|anglais|inglese)\b/i,'en'],
+        [/\b(in|em|en)?\s*(portugu[eê]s|portuguese|portugais|portoghese)\b/i,'pt'],
+        [/\b(in|em|en)?\s*(spanish|espa[nñ]ol|espanhol|espagnol|spagnolo)\b/i,'es'],
+        [/\b(in|em|en)?\s*(french|franc[eê]s|fran[cç]ais|francese)\b/i,'fr'],
+        [/\b(in|em|en)?\s*(italian|italiano|italien|italiana)\b/i,'it']],
+  fast:/\b(fast|faster|quick|upbeat|r[aá]pid[oa]|rapide|veloce|dance|club|corrid[oa])\b/i,
+  slow:/\b(slow|slower|calm|gentle|lent[oa]?|devagar|calm[oa]|tranquil[oa]|ballad|balada|ballade|ballata)\b/i,
+  bpmNum:/\b(\d{2,3})\s*(bpm|batidas)\b/i,
+  sad:/\b(sad|triste|melanchol\w*|melanc[oó]lic\w*|malinconic\w*|lonely|sozinh[oa]|solo|seul|blue|dark|escur[oa]|sombre|saudade|nostalg\w*)\b/i,
+  happy:/\b(happy|feliz|alegre|allegr[oa]|contento|joyful|bright|warm|heureux|felice|luminos[oa]|sunny|hopeful)\b/i,
+  angry:/\b(angry|angrier|zangad[oa]|raiva|f[uú]ri[ao]|enfadad[oa]|rabbia|col[eè]re|enojad[oa]|loud|hard|heavy|punk|furious|mad)\b/i,
+  soprano:/\b(soprano|female|feminin\w*|woman|mulher|mujer|femme|donna|high voice|voz aguda)\b/i,
+  alto:/\b(alto|contralto|mezzo)\b/i,
+  tenor:/\b(tenor|t[eé]nor|tenore|male|masculin\w*|man singing|homem|hombre|homme|uomo)\b/i,
+  bass:/\b(bass|baixo|bajo|basse|baritone|bar[ií]tono|deep voice|voz grave|low voice|monk)\b/i,
+  noChorus:/\b(with\s+)?(no chorus|without a chorus|sem refr[ãa]o|sin estribillo|sans refrain|senza ritornello)\b/i,
+  bridge:/\b(with|com|con|avec)?\s*(a|an|uma?|una?|une)?\s*(bridge|ponte|puente|middle eight)\b/i,
+  short:/\b(short|curt[ao]|cort[ao]|court|breve|quick one)\b/i,
+  instr:[[/\bpiano\b/i,'piano'],[/\b(guitar|guitarra|guitare|chitarra)\b/i,'guitar'],
+         [/\b(drums|bateria|bater[ií]a|batterie|batteria|beat)\b/i,'drums'],
+         [/\b(synth|sintetizador|synth[eé])\b/i,'synth'],
+         [/\b(strings|cordas|cuerdas|cordes|archi|violin\w*)\b/i,'strings'],
+         [/\b(fado|bossa|jazz|waltz|valsa|tango|blues|folk|punk|techno|house)\b/i,'$1']]
+};
+/* leading commands to peel off so the topic is just the topic */
+const CMD = new RegExp('^\\s*(?:please\\s+|por favor\\s+|s\'il te pla[iî]t\\s+)?(?:' +
+  'write|make|create|compose|sing|give me|do|escreve[r]?|faz(?:er)?|cria[r]?|canta[r]?|d[aá]-me|' +
+  'escribe|haz|crea|canta|[eé]cris|fais|cr[eé]e|chante|scrivi|fai|crea|canta' +
+  ')\\b[^,.:;]{0,40}?\\b(?:about|on|sobre|acerca de|de|sur|su|riguardo)\\b\\s*','i');
 
-const DARK  = ['rain','sad','melancholy','night','lonely','alone','grief','winter','fog','slow','ghost','empty','cold','saudade','blue','miss','missing','goodbye','leaving','left','lost','tired','funeral','regret','last'];
-const BRIGHT= ['sun','happy','summer','dance','bright','joy','festival','beach','party','morning','sunrise','warm','gold','love','wedding','friends','home','birthday','free','laugh'];
-const AGGRO = ['fuck','shit','damn','hell','bitch','ass','piss','bastard','crap','angry','rage','furious','hate','scream','loud','riot','fight','wasted','fed up','pissed','revenge','burn'];
-
-function keywords(text){
-  return (text||'').toLowerCase()
-    .replace(/[^\p{L}\p{N}\s'-]/gu,' ')
-    .split(/\s+/)
-    .filter(w => w.length>2 && !STOP.has(w))
-    .slice(0,14);
-}
-/* Pull out the phrases the user actually wrote — words that sat next to
-   each other survive as a unit ("last train", "saying goodbye"), which
-   sings far better than a lone adjective dropped into a noun slot. */
-function phrasesOf(text){
-  const toks = (text||'').toLowerCase().replace(/[^\p{L}\p{N}\s'-]/gu,' ').split(/\s+/).filter(Boolean);
-  const out = []; let run = [];
-  const flush = ()=>{
-    for (let i=0;i<run.length-1;i++) out.push(run[i]+' '+run[i+1]);
-    run = [];
+function parseIntent(text, prevLang){
+  const raw = (text||'').trim();
+  const t   = ' ' + raw.toLowerCase() + ' ';
+  const st  = ' ' + strip(raw) + ' ';
+  const out = { raw, asked:[] };
+  const kill = [];                       // spans that are instructions, not subject matter
+  const hit = (re, label)=>{
+    const m = raw.match(re);
+    if (!m) return null;
+    kill.push(m[0]);
+    if (label) out.asked.push(label);
+    return m;
   };
-  toks.forEach(w=>{ if (w.length>2 && !STOP.has(w)) run.push(w); else flush(); });
+
+  // language: explicit request wins, then detection
+  for (const [re, code] of ASK.lang){
+    if (hit(re, 'language')){ out.lang = code; break; }
+  }
+  if (!out.lang) out.lang = detectLang(raw);
+
+  // tempo
+  const bm = hit(ASK.bpmNum, 'bpm');
+  if (bm) out.bpm = Math.max(45, Math.min(200, +bm[1]));
+  else if (hit(ASK.fast, 'tempo')) out.tempo = 'fast';
+  else if (hit(ASK.slow, 'tempo')) out.tempo = 'slow';
+
+  // mood — the word is an instruction only when it isn't the subject itself
+  if (hit(ASK.angry,'mood'))      out.mood = 'aggro';
+  else if (hit(ASK.sad,'mood'))   out.mood = 'dark';
+  else if (hit(ASK.happy,'mood')) out.mood = 'bright';
+
+  // voice
+  if (hit(ASK.soprano,'voice'))    out.register='soprano';
+  else if (hit(ASK.alto,'voice'))  out.register='alto';
+  else if (hit(ASK.tenor,'voice')) out.register='tenor';
+  else if (hit(ASK.bass,'voice'))  out.register='bass';
+
+  // shape
+  if (hit(ASK.noChorus,'no chorus')) out.noChorus = true;
+  if (hit(ASK.bridge,'bridge'))      out.wantBridge = true;
+  if (hit(ASK.short,'short'))        out.short = true;
+
+  // instruments / style
+  out.instr = [];
+  ASK.instr.forEach(([re,name])=>{
+    const m = raw.match(re);
+    if (m) out.instr.push(name === '$1' ? m[1].toLowerCase() : name);
+  });
+  if (out.instr.length) out.asked.push('instruments');
+
+  // the topic: drop every instruction span, then the command, then the leftover style clause
+  let topic = raw;
+  kill.forEach(k=>{ topic = topic.split(k).join(' '); });
+  topic = topic.replace(CMD,'')
+               .replace(/^\s*(?:a|an|the|uma?|una?|une)?\s*(?:song|c[aâ]n[cç][aã]o|canci[oó]n|chanson|canzone)\s*(?:about|on|sobre|acerca de|sur|su|de|di)\s*/i,'')
+               .replace(/\s*,\s*,\s*/g,', ').replace(/\s{2,}/g,' ')
+               .replace(/^[\s,;–—-]+|[\s,;–—-]+$/g,'')
+               .replace(/\b(with|com|con|avec|and|e|y|et)\s*(a|an|uma?|una?|une)?\s*$/i,'')
+               .replace(/^[\s,;–—-]+|[\s,;–—-]+$/g,'');
+  const parts = topic.split(/[,;—–]| - /).map(s=>s.trim()).filter(Boolean);
+  if (parts.length > 1){
+    const styleOnly = s => {
+      const w = strip(s).split(/\s+/).filter(Boolean);
+      const styleRe = /^(fast|slow|sad|happy|angry|loud|quiet|soft|calm|warm|dark|bright|soprano|alto|tenor|bass|piano|guitar|drums|synth|strings|short|long|male|female|no|without|chorus|bridge|bpm|\d+|rapido|lento|triste|feliz|alegre|zangado|raiva|calmo|curta|curto|voz|aguda|grave|guitarra|bateria|cordas|sem|refrao|com|ponte|en|em|in|de|the|a|an|one|nice|good|please)$/;
+      return w.length > 0 && w.every(x => styleRe.test(x));
+    };
+    const kept = parts.filter(p => !styleOnly(p));
+    topic = (kept.length ? kept : parts).join(', ');
+  }
+  topic = topic.replace(/^(that|which|it)\s+/i,'').trim();
+  out.topic = topic || raw;
+
+  // is there actually an idea here?
+  const L = LANGS[out.lang];
+  const content = strip(out.topic).split(/\s+/).filter(w => w.length>2 && !L.stop.has(w));
+  out.contentWords = content.length;
+  out.thin = content.length < 2 && !out.asked.length;
+  return out;
+}
+
+/* ================================================================
+   3 · THE SONGWRITER
+   Fill templates with the user's own phrases, then choose the four
+   lines of each section so that they rhyme and scan together.
+   ================================================================ */
+const MOODW = {
+  dark:['rain','sad','night','lonely','alone','grief','winter','fog','ghost','empty','cold','blue','miss','missing','goodbye','leaving','lost','tired','regret','last','funeral','chuva','triste','noite','sozinho','saudade','perdi','adeus','frio','falta','ausencia','despedida','luto','lluvia','solo','noche','perdido','pluie','nuit','seul','perdu','pioggia','notte','solo','perso'],
+  bright:['sun','happy','summer','dance','bright','joy','beach','party','morning','sunrise','warm','gold','love','wedding','friends','home','birthday','free','laugh','sol','feliz','verao','verano','danca','manha','amor','casamento','amigos','festa','ete','soleil','heureux','estate','sole','felice','allegro'],
+  aggro:['angry','rage','furious','hate','scream','loud','riot','fight','wasted','revenge','burn','sick','done','fuck','shit','damn','hell','raiva','zangado','farto','gritar','partir','odio','vingança','vinganca','rabia','gritos','colere','rabbia','urlare']
+};
+function moodFrom(text, r){
+  const t = ' ' + strip(text) + ' ';
+  const hit = m => MOODW[m].some(w => t.includes(' '+w) );
+  if (hit('aggro')) return 'aggro';
+  if (hit('dark'))  return 'dark';
+  if (hit('bright'))return 'bright';
+  return r() < 0.55 ? 'dark' : 'bright';
+}
+
+/* content words and adjacent pairs from what the user wrote */
+function harvest(text, L){
+  const toks = text.toLowerCase().replace(/[^\p{L}\p{N}\s'’-]/gu,' ').split(/\s+/).filter(Boolean);
+  const words = [], phrases = [];
+  let run = [];
+  const flush = ()=>{ for (let i=0;i<run.length-1;i++) phrases.push(run[i]+' '+run[i+1]); words.push(...run); run=[]; };
+  toks.forEach(w=>{ if (w.length>2 && !L.stop.has(w) && !L.stop.has(strip(w))) run.push(w); else flush(); });
   flush();
-  // a phrase that starts with a verb ("goes wrong") can't stand in for a noun
-  const VERBY = new Set("goes went come came comes keep keeps kept say says said get gets got give gives gave take takes took put puts make makes made pick picks does did doing had has have was were are is".split(" "));
-  return [...new Set(out)].filter(p => !VERBY.has(p.split(' ')[0])).slice(0,6);
+  const VERBY = setOf("goes went come came comes keep keeps say says said get gets got give gave take took put make made does did was were are is vai foi vem tem faz diz era son fue est sono");
+  return {
+    words:[...new Set(words)],
+    phrases:[...new Set(phrases)].filter(p=>!VERBY.has(p.split(' ')[0])).slice(0,6)
+  };
 }
 
-/* the user's own words make the best title */
-const SMALL = new Set("a an the to in of at on and or for with from is it my your".split(" "));
-function titleFromIdea(text){
-  let words = (text||'').split(/[,—–-]|\bthat\b/)[0]
-    .replace(/[^\p{L}\p{N}\s'’]/gu,' ').split(/\s+/).filter(Boolean);
-  while (words.length && SMALL.has(words[0].toLowerCase())) words.shift();
-  words = words.slice(0,4);
-  while (words.length > 1 && SMALL.has(words[words.length-1].toLowerCase())) words.pop();
-  if (!words.length) return 'Untitled';
-  return words.map((w,i)=>{
-    const lw = w.toLowerCase();
-    return (i>0 && SMALL.has(lw)) ? lw : lw.charAt(0).toUpperCase()+lw.slice(1);
-  }).join(' ');
+/* rhyme = from the last stressed-ish vowel of the last word to the end */
+function rhymeKey(line){
+  const w = strip(line).replace(/[^a-z\s]/g,'').trim().split(/\s+/).pop() || '';
+  const m = w.match(/[aeiou][a-z]*$/);
+  if (!m) return w.slice(-2);
+  let k = m[0];
+  if (k.length > 4) k = k.slice(-4);
+  return k.replace(/s$/,'');                    // sing/sings still rhyme
 }
-/* "a open road" → "an open road" */
-function aan(s){
-  return s.replace(/\ba (?=(?:[aeiou]|honest|hour))/gi, m => m[0]==='A' ? 'An ' : 'an ');
-}
+const countSyl = s => (strip(s).match(/[aeiou]+/g) || []).length;
 
-/* ---------- word banks ---------- */
-const BANK = {
-  dark: {
-    img:['rain','streetlight','platform','window','coat','ashtray','static','ceiling','ocean','December','headlights','hallway','payphone','kitchen light','last bus','empty chair','bruise','tide'],
-    verb:['hold','carry','bury','keep','count','follow','swallow','answer','forgive'],
-    ing:['holding','counting','waiting','driving','burning','leaving','pretending'],
-    adj:['quiet','cold','half-empty','honest','tired','blue','slow','open','unfinished','patient']
-  },
-  bright:{
-    img:['morning','kitchen','radio','sunlight','harbour','open road','front step','summer','back seat','first train','orange sky','cheap wine','tin roof','june'],
-    verb:['keep','carry','follow','hold','call','chase','deserve','begin'],
-    ing:['dancing','laughing','driving','running','singing','waking','falling'],
-    adj:['golden','loud','easy','wide open','ridiculous','young','bright','lucky','warm']
-  },
-  aggro:{
-    img:['broken glass','red light','front door','amplifier','engine','pavement','fist','siren','last straw','cheap lock','tab','bad year'],
-    verb:['break','burn','leave','shout','drop','take','forget','wreck'],
-    ing:['screaming','breaking','burning','leaving','driving','shouting'],
-    adj:['done','loud','wired','sick of it','out of patience','honest','ugly','finished']
-  }
-};
-
-const VERSE_LINES = {
-  dark:[
-    "I left the {img} on for you",
-    "Nobody warned me about the {kw}",
-    "There's a {adj} {img} in the back of my head",
-    "You said {kw}, and I heard everything else",
-    "I {verb} the {kw} like it still belongs to me",
-    "The {img} already knows my name",
-    "{ing} in the dark till the morning shows up",
-    "Every {kw} sounds like a door closing",
-    "I keep the {kw} where the {img} can't reach it",
-    "It's {adj} out here without the {kw}",
-    "Somebody's {ing} and it isn't me",
-    "The {img} is {adj} tonight and so am I"
-  ],
-  bright:[
-    "Woke up {ing} about the {kw}",
-    "The {img} is {adj} and I'm not arguing",
-    "You brought the {kw} and I brought the noise",
-    "Nobody here is {ing} alone tonight",
-    "I'd {verb} the {kw} all over again",
-    "There's a {adj} {img} with your name on it",
-    "We were {ing} before we knew the words",
-    "Give me the {kw} and a {adj} {img}",
-    "The {img} says yes and I believe it",
-    "Everything good started with the {kw}"
-  ],
-  aggro:[
-    "I'm done {ing} for the {kw}",
-    "Take the {kw}, I kept the {img}",
-    "Say it again to my face this time",
-    "You want the {adj} version? Here it is",
-    "I'll {verb} the {img} before I call you back",
-    "Nobody's {ing} — that's the whole problem",
-    "The {img} went first, the {kw} went after",
-    "I'm {adj} and I'm not lowering my voice",
-    "Keep the {kw}. I never wanted it clean"
-  ]
-};
-
-const CHORUS_LINES = {
-  dark:[
-    "So let the {kw} go",
-    "I'm not asking twice tonight",
-    "And the {img} keeps falling anyway",
-    "Say it slow, say it {adj}",
-    "I'll be here when the {img} runs out"
-  ],
-  bright:[
-    "So hold the {kw} up",
-    "We're not going home tonight",
-    "And the {img} keeps on going anyway",
-    "Say it loud, say it {adj}",
-    "I'll be here when the {img} comes back"
-  ],
-  aggro:[
-    "So burn the {kw} down",
-    "I'm not asking twice tonight",
-    "And the {img} can stay where it fell",
-    "Say it {adj} or don't say it at all",
-    "I'll be gone before the {img} lands"
-  ]
-};
-
-const GENRE = {
-  dark:['slow indie ballad','late-night piano song','ambient folk','slowcore','torch song'],
-  bright:['warm indie pop song','summer soul number','open-road anthem','folk-pop song'],
-  aggro:['punk song','industrial stomp','garage rock number','post-punk track']
-};
-
-/* ---------- the songwriter ---------- */
-function writeSong(idea, opts){
+function writeSong(intent, opts){
   opts = opts || {};
-  const t = (idea||'').toLowerCase();
-  const seed = hashString(t + (opts.salt||''));
-  const r = makeRng(seed);
+  const idea = intent.topic || intent.raw;
+  const lang = opts.lang || intent.lang || 'en';
+  const L    = LANGS[lang];
+  const seed = hashString(strip(idea) + lang + (opts.salt||''));
+  const r    = makeRng(seed);
 
-  const aggro  = AGGRO.some(w=>t.includes(w));
-  const dark   = !aggro && DARK.some(w=>t.includes(w));
-  const bright = !aggro && !dark && BRIGHT.some(w=>t.includes(w));
-  let mood = aggro ? 'aggro' : dark ? 'dark' : bright ? 'bright' : (r()<0.55 ? 'dark' : 'bright');
-  if (opts.mood) mood = opts.mood;
+  const mood = opts.mood || intent.mood || moodFrom(intent.raw, r);
+  const bank = L.bank[mood];
+  const { words, phrases } = harvest(idea, L);
 
-  const bank = BANK[mood];
-  const kws = keywords(idea);
-  // sort the user's words into the slots they actually fit
-  const gerunds = kws.filter(w => /ing$/.test(w) && w.length > 4);
-  // bare adjectives read badly in a noun slot ("every last sounds like…"),
-  // so they only get to appear inside one of the user's own phrases
-  const ADJ_ONLY = new Set("last first next big small old new good bad real whole only best worst same different hard easy long short late early own".split(" "));
-  const nouns   = kws.filter(w => !/ing$|ed$|ly$/.test(w) && !ADJ_ONLY.has(w))
-                     .map(w => w.replace(/['’]s$/,''));
-  const phrases = phrasesOf(idea);
-  // only multi-word gerund phrases lose their article ("the saying goodbye")
+  const ADJ_ONLY = setOf("last first next big small old new good bad real whole only best worst same different hard easy long short late early own ultimo primeiro grande pequeno velho novo mesmo");
+  const nouns = words.filter(w => !/ing$|ed$|ly$/.test(w) && !ADJ_ONLY.has(strip(w))).map(w=>w.replace(/['’]s$/,''));
+  const gerunds = words.filter(w => /ing$/.test(w) && w.length > 4);
+  const kwPool = [...phrases, ...nouns, ...words].filter((v,i,a)=>v && a.indexOf(v)===i);
+  const fallback = {en:['the night','the light','your name'], pt:['a noite','a luz','o teu nome'],
+                    es:['la noche','la luz','tu nombre'], fr:['la nuit','la lumière','ton nom'],
+                    it:['la notte','la luce','il tuo nome']}[lang];
+  if (!kwPool.length) kwPool.push(...fallback);
   const gerundish = phrases.filter(p => /ing$/.test(p.split(' ')[0]) && p.includes(' '));
-  // phrases first — they carry the user's actual image
-  const kwPool  = [...phrases, ...nouns, ...kws, 'night','light','name']
-                    .filter((v,i,a)=>v && a.indexOf(v)===i);
 
-  // fill a template with the user's own words first, the bank second
+  /* English wants a determiner where the romance templates don't:
+     "I lost the last train", not "I lost last train" */
+  const proper = new Set((idea.match(/(?!^)\b[A-Z][\p{L}]+/gu)||[]).map(w=>w.toLowerCase()));
+  const DET = /^(the|a|an|my|your|his|her|our|their|this|that|some)\b/i;
+  const theify = k => (lang !== 'en' || DET.test(k) || /^\w+ing\b/.test(k)
+                       || proper.has(k.split(' ')[0].toLowerCase())) ? k : 'the ' + k;
+
   let kwCursor = 0;
-  const nextKw = () => kwPool[(kwCursor++) % kwPool.length];
   function fill(tpl){
-    return tpl
-      .replace(/\{kw\}/g,  () => nextKw())
-      .replace(/\{img\}/g, () => pick(r, bank.img))
-      .replace(/\{adj\}/g, () => pick(r, bank.adj))
-      .replace(/\{verb\}/g,() => pick(r, bank.verb))
-      .replace(/\{ing\}/g, () => (gerunds.length && r()<0.55) ? pick(r, gerunds) : pick(r, bank.ing));
-  }
-  // "without the saying goodbye" → "without saying goodbye"
-  function tidy(line){
+    let usedImg = null;
+    let s = tpl
+      .replace(/\{kw\}/g,  ()=> theify(kwPool[(kwCursor++) % kwPool.length]))
+      .replace(/\{img\}/g, ()=>{ let v, n=0; do { v = pick(r, bank.img); n++; } while (v===usedImg && n<4); usedImg=v; return v; })
+      .replace(/\{adj\}/g, ()=> pick(r, bank.adj))
+      .replace(/\{verb\}/g,()=> pick(r, bank.verb))
+      .replace(/\{ing\}/g, ()=> (gerunds.length && r()<0.5) ? pick(r, gerunds) : pick(r, bank.ing));
     gerundish.forEach(g=>{
-      line = line.replace(new RegExp('\\b(the|a) ' + g.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi'), g);
+      s = s.replace(new RegExp('\\b(the|a) '+g.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), g);
     });
-    return aan(line).replace(/\s{2,}/g,' ').trim().replace(/^./, c=>c.toUpperCase());
+    if (lang === 'en') s = s.replace(/\ba (?=(?:[aeiou]|honest|hour))/gi, m => m[0]==='A' ? 'An ' : 'an ');
+    return s.replace(/\s{2,}/g,' ').trim().replace(/^./, c=>c.toUpperCase());
   }
 
-  const write = tpl => tidy(fill(tpl));
-  const vPool = shuffled(r, VERSE_LINES[mood]);
-  const verse1 = vPool.slice(0,4).map(write);
-  const verse2 = vPool.slice(4,8).map(write);
-  const cPool  = shuffled(r, CHORUS_LINES[mood]);
-  const chorus = [cPool[0], cPool[1], cPool[2], cPool[3] || cPool[0]].map(write);
+  /* build a quatrain whose 2nd and 4th lines rhyme and whose lines scan alike */
+  function quatrain(pool, n, exclude){
+    n = n || 4;
+    exclude = exclude || new Set();
+    // two fills per template, but a template may only appear once in a section
+    const cand = [];
+    shuffled(r, pool.map((tpl,i)=>({tpl,i}))).forEach(({tpl,i})=>{
+      if (exclude.has(i)) return;                       // don't repeat a line shape across sections
+      for (let k=0;k<2;k++){
+        const text = fill(tpl);
+        if (!cand.some(c=>c.text===text)) cand.push({ tpl:i, text, rhyme:rhymeKey(text), syl:countSyl(text) });
+      }
+    });
+    if (cand.length < n){
+      const all = pool.map((tpl,i)=>({tpl:i, text:fill(tpl)}));
+      return { lines: all.slice(0,n).map(c=>c.text), used: all.slice(0,n).map(c=>c.tpl) };
+    }
 
-  // title: the user's own phrase, tidied
-  const title = titleFromIdea(idea);
+    let best = null, bestScore = -1e9;
+    for (let a=0; a<cand.length; a++){
+      for (let b=0; b<cand.length; b++){
+        if (cand[b].tpl === cand[a].tpl) continue;
+        for (let d=0; d<cand.length; d++){
+          if (cand[d].tpl===cand[a].tpl || cand[d].tpl===cand[b].tpl) continue;
+          const rhymed = cand[b].rhyme === cand[d].rhyme;          // ABCB, the workhorse of song lyrics
+          for (let c=0; c<cand.length && c<10; c++){
+            if (cand[c].tpl===cand[a].tpl||cand[c].tpl===cand[b].tpl||cand[c].tpl===cand[d].tpl) continue;
+            const set = [cand[a],cand[b],cand[c],cand[d]];
+            const syls = set.map(x=>x.syl);
+            const spread = Math.max(...syls) - Math.min(...syls);
+            const score = (rhymed ? 60 : 0)
+                        + (cand[a].rhyme === cand[c].rhyme ? 18 : 0)   // ABAB is a bonus
+                        - spread * 3.5
+                        - (syls.some(s=>s>14) ? 8 : 0);
+            if (score > bestScore){ bestScore = score; best = set; }
+          }
+        }
+      }
+      if (bestScore >= 74) break;                                   // good enough, stop searching
+    }
+    const chosen = (best || cand.slice(0,n)).slice(0,n);
+    return { lines: chosen.map(c=>c.text), used: chosen.map(c=>c.tpl) };
+  }
 
-  // musical decisions
+  const q1 = quatrain(L.verse[mood]);
+  const q2 = quatrain(L.verse[mood], 4, new Set(q1.used));
+  const qc = quatrain(L.chorus[mood]);
+  const qb = quatrain(L.bridge[mood], Math.min(3, L.bridge[mood].length));
+  const verse1 = q1.lines, verse2 = q2.lines, chorus = qc.lines, bridge = qb.lines;
+
+  // --- musical decisions ---
   const keys = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
   const root = 48 + Math.floor(r()*10);
-  let bpm = mood==='aggro' ? Math.round(140+r()*22)
-          : mood==='bright' ? Math.round(96+r()*26)
-          : Math.round(66+r()*22);
-  if (/slow|ballad|lullab|quiet/.test(t)) bpm = Math.round(58+r()*14);
-  if (/fast|dance|club|run/.test(t))      bpm = Math.round(122+r()*26);
-  if (opts.bpm) bpm = opts.bpm;
+  let bpm = mood==='aggro' ? Math.round(138+r()*22)
+          : mood==='bright'? Math.round(96+r()*24)
+          : Math.round(68+r()*20);
+  if (intent.tempo === 'slow') bpm = Math.round(56+r()*14);
+  if (intent.tempo === 'fast') bpm = Math.round(126+r()*26);
+  if (intent.bpm) bpm = intent.bpm;
+  if (opts.bpm)   bpm = opts.bpm;
 
   const scale = mood==='aggro' ? 'minorPent'
               : mood==='dark'  ? (r()<0.5 ? 'minorPent' : 'aeolian')
               : (r()<0.5 ? 'majorPent' : 'lydian');
+  const register = opts.register || intent.register ||
+    (mood==='aggro' ? 'tenor' : (r()<0.5 ? 'alto' : 'tenor'));
 
-  let register = opts.register;
-  if (!register){
-    if (/soprano|female|high voice|choir|girl/.test(t)) register='soprano';
-    else if (/tenor|male|man singing|guy/.test(t))      register='tenor';
-    else if (/bass|baritone|deep voice|monk/.test(t))   register='bass';
-    else register = mood==='aggro' ? 'tenor' : (r()<0.5 ? 'alto' : 'tenor');
+  // --- structure ---
+  const sec = (label, lines) => ({label, lines});
+  const CH = {en:'Chorus',pt:'Refrão',es:'Estribillo',fr:'Refrain',it:'Ritornello'}[lang];
+  const V  = {en:'Verse',pt:'Verso',es:'Estrofa',fr:'Couplet',it:'Strofa'}[lang];
+  const BR = {en:'Bridge',pt:'Ponte',es:'Puente',fr:'Pont',it:'Ponte'}[lang];
+  let sections;
+  if (intent.noChorus){
+    sections = [sec(V+' 1', verse1), sec(V+' 2', verse2), sec(BR, bridge)];
+  } else if (intent.short){
+    sections = [sec(V+' 1', verse1), sec(CH, chorus)];
+  } else {
+    sections = [sec(V+' 1', verse1), sec(CH, chorus), sec(V+' 2', verse2), sec(CH, chorus)];
+    if (intent.wantBridge || r() < 0.55){ sections.push(sec(BR, bridge), sec(CH, chorus)); }
   }
 
+  const genre = intent.instr && intent.instr.length && /fado|bossa|jazz|waltz|valsa|tango|blues|folk|punk|techno|house/.test(intent.instr.join(' '))
+    ? intent.instr.find(i=>/fado|bossa|jazz|waltz|valsa|tango|blues|folk|punk|techno|house/.test(i))
+    : pick(r, L.genre[mood]);
+
   return {
-    idea, seed, mood, aggro, title, bpm, scale, root, register,
-    keyName: keys[root%12] + (['minorPent','aeolian'].includes(scale) ? ' minor' : ' major'),
-    genre: pick(r, GENRE[mood]),
-    hook: chorus[0],
-    sections:[
-      { label:'Verse 1', lines:verse1 },
-      { label:'Chorus',  lines:chorus },
-      { label:'Verse 2', lines:verse2 },
-      { label:'Chorus',  lines:chorus }
-    ]
+    idea, lang, seed, mood, title:titleFromIdea(idea, lang),
+    bpm, scale, root, register, genre, sections,
+    hook: (chorus[0] || verse1[0]),
+    keyName: keys[root%12] + (['minorPent','aeolian'].includes(scale)
+      ? {en:' minor',pt:' menor',es:' menor',fr:' mineur',it:' minore'}[lang]
+      : {en:' major',pt:' maior',es:' mayor',fr:' majeur',it:' maggiore'}[lang]),
+    explicit: /\b(fuck|shit|bitch|puta|merda|foda|mierda|merde|cazzo)\w*\b/i.test(idea),
+    instr: intent.instr || []
   };
 }
 
-/* the little paragraph the assistant says before the lyrics */
-function describe(song){
-  const feel = {
-    dark:'keeps the verses close and quiet, then opens up on the chorus',
-    bright:'stays warm the whole way through and lifts on the chorus',
-    aggro:'starts annoyed and stops pretending by the second verse'
-  }[song.mood];
-  const voice = {soprano:'a soprano',alto:'an alto',tenor:'a tenor',bass:'a bass'}[song.register];
-  return aan(`Here's what I'm going to make: a ${song.genre} in ${song.keyName} at ${song.bpm} bpm, sung by ${voice}. `)
-       + `It's about ${song.idea.replace(/\.$/,'')} — the arrangement ${feel}, and the whole thing hangs on the line "${song.hook}". `
-       + `Two verses, the chorus twice. Here are the words:`;
+function titleFromIdea(text, lang){
+  const small = LANGS[lang].small;
+  let w = (text||'').split(/[,—–;]|\bthat\b|\bque\b/)[0]
+    .replace(/[^\p{L}\p{N}\s'’]/gu,' ').split(/\s+/).filter(Boolean);
+  while (w.length && small.has(strip(w[0]))) w.shift();
+  w = w.slice(0,4);
+  while (w.length > 1 && small.has(strip(w[w.length-1]))) w.pop();
+  if (!w.length) return {en:'Untitled',pt:'Sem título',es:'Sin título',fr:'Sans titre',it:'Senza titolo'}[lang];
+  return w.map((x,i)=>{
+    const lx = x.toLowerCase();
+    return (i>0 && small.has(strip(lx))) ? lx : lx.charAt(0).toUpperCase()+lx.slice(1);
+  }).join(' ');
 }
-/* ============================================================
-   2 · SINGING — syllables, arrangement, synthesis
-   ============================================================ */
 
-const SCALES = {
-  minorPent:[0,3,5,7,10],
-  majorPent:[0,2,4,7,9],
-  aeolian:[0,2,3,5,7,8,10],
-  lydian:[0,2,4,6,7,9,11]
+function describe(song){
+  const L = LANGS[song.lang], s = L.say;
+  return s.make(song.genre, song.keyName, song.bpm, L.voices[song.register]) + ' '
+       + s.about(song.idea.replace(/\.$/,''), s.feel[song.mood], song.hook) + ' '
+       + s.words;
+}
+/* ================================================================
+   4 · PHONOLOGY
+   Vowels are formant triples; diphthongs glide between two of them.
+   Each language brings its own spelling rules on top.
+   ================================================================ */
+const V = {
+  a    :[730,1090,2440],   ae:[660,1720,2410],  e :[530,1840,2480],
+  ee   :[270,2290,3010],   ih:[400,1990,2550],  o :[570,840,2410],
+  oh   :[450,900,2400],    oo:[300,870,2240],   uh:[620,1200,2400],
+  schwa:[500,1500,2450],   y :[250,1750,2160],  eu:[370,1600,2500],
+  an   :[620,1100,2400],   on:[450,900,2300],   in:[400,1800,2500]
 };
-/* three resonances per vowel — a sawtooth through bandpass filters
-   tuned to these reads as a human vowel */
-const FORMANTS = {
-  a:[730,1090,2440], e:[530,1840,2480], i:[270,2290,3010],
-  o:[570,840,2410],  u:[300,870,2240],  m:[280,900,2200]
+const NASAL = new Set(['an','on','in']);
+const DIPH = {          // [from, to]
+  ai:['a','ee'], ei:['e','ee'], oi:['o','ee'], au:['a','oo'], ou:['oh','oo'],
+  ju:['ee','oo'], wa:['oo','a'], ao:['an','oo'], ea:['e','a'], ia:['ee','a'], io:['ee','o'], oa:['o','a']
 };
-const REGISTERS = {
-  soprano:{shift:1.24, oct:26, name:'soprano'},
-  alto:   {shift:1.10, oct:21, name:'alto'},
-  tenor:  {shift:1.00, oct:14, name:'tenor'},
-  bass:   {shift:0.86, oct:7,  name:'bass'}
-};
-const VOWELS = {a:'a',á:'a',à:'a',ã:'a',â:'a',e:'e',é:'e',ê:'e',i:'i',í:'i',y:'i',o:'o',ó:'o',ô:'o',õ:'o',u:'u',ú:'u'};
+const vowelTargets = k => DIPH[k] ? [V[DIPH[k][0]], V[DIPH[k][1]]] : [V[k]||V.a, null];
 
-/* ---------- consonants ----------
-   A vowel alone sounds like "ah-oo-ee". What makes a synthesized voice
-   sing actual WORDS is: (1) the formants sliding out of a consonant's
-   locus into the vowel, (2) a noise burst for plosives, (3) a filtered
-   noise band for fricatives, (4) a voiced murmur for nasals.        */
+/* consonants: locus = where the formants come from / go to */
 const CONS = {
-  // stops: silence, then a burst, then the formants slide out of the locus
-  p:{k:'stop', voiced:false, locus:[300,800,2300],  burst:1300, bw:0.9, dur:.055},
-  b:{k:'stop', voiced:true,  locus:[300,800,2300],  burst:900,  bw:0.8, dur:.045},
-  t:{k:'stop', voiced:false, locus:[300,1800,2800], burst:3900, bw:1.1, dur:.05},
-  d:{k:'stop', voiced:true,  locus:[300,1800,2800], burst:2700, bw:1.0, dur:.04},
-  k:{k:'stop', voiced:false, locus:[300,2200,2500], burst:2300, bw:1.2, dur:.055},
-  g:{k:'stop', voiced:true,  locus:[300,2200,2500], burst:1700, bw:1.0, dur:.045},
-  // fricatives: shaped noise
-  f:{k:'fric', voiced:false, locus:[320,1100,2400], band:4200, q:0.8, dur:.07},
-  v:{k:'fric', voiced:true,  locus:[320,1100,2400], band:3600, q:0.9, dur:.055},
-  s:{k:'fric', voiced:false, locus:[300,1700,2700], band:6800, q:2.2, dur:.085},
-  z:{k:'fric', voiced:true,  locus:[300,1700,2700], band:5600, q:1.8, dur:.06},
-  sh:{k:'fric',voiced:false, locus:[300,1900,2400], band:3000, q:1.7, dur:.09},
-  th:{k:'fric',voiced:false, locus:[300,1600,2600], band:5200, q:0.7, dur:.06},
-  h:{k:'fric', voiced:false, locus:[400,1400,2400], band:1400, q:0.5, dur:.05},
-  // affricates = stop + fricative
-  ch:{k:'affr',voiced:false, locus:[300,1900,2400], band:3200, q:1.6, burst:2600, dur:.09},
-  j: {k:'affr',voiced:true,  locus:[300,1900,2400], band:2800, q:1.5, burst:2000, dur:.075},
-  // nasals and liquids: voiced, no noise — just a murmur at their own locus
-  m:{k:'nasal',locus:[280,900,2200],  dur:.075},
-  n:{k:'nasal',locus:[280,1600,2600], dur:.065},
-  ng:{k:'nasal',locus:[280,2000,2600],dur:.075},
-  l:{k:'liq',  locus:[350,1100,2900], dur:.055},
-  r:{k:'liq',  locus:[350,1250,1600], dur:.055},
-  w:{k:'glide',locus:[300,700,2200],  dur:.06},
-  y:{k:'glide',locus:[280,2200,3000], dur:.05}
+  p :{k:'stop', asp:true,  locus:[300,800,2300],  burst:1300, bw:0.9, dur:.055},
+  b :{k:'stop', voiced:true,locus:[300,800,2300], burst:900,  bw:0.8, dur:.045},
+  t :{k:'stop', asp:true,  locus:[300,1800,2800], burst:3900, bw:1.1, dur:.05},
+  d :{k:'stop', voiced:true,locus:[300,1800,2800],burst:2700, bw:1.0, dur:.04},
+  k :{k:'stop', asp:true,  locus:[300,2200,2500], burst:2300, bw:1.2, dur:.055},
+  g :{k:'stop', voiced:true,locus:[300,2200,2500],burst:1700, bw:1.0, dur:.045},
+  f :{k:'fric', locus:[320,1100,2400], band:4200, q:0.8, dur:.07},
+  v :{k:'fric', voiced:true, locus:[320,1100,2400], band:3400, q:0.9, dur:.055},
+  s :{k:'fric', locus:[300,1700,2700], band:6800, q:2.2, dur:.085},
+  z :{k:'fric', voiced:true, locus:[300,1700,2700], band:5400, q:1.8, dur:.06},
+  sh:{k:'fric', locus:[300,1900,2400], band:3000, q:1.7, dur:.09},
+  zh:{k:'fric', voiced:true, locus:[300,1900,2400], band:2600, q:1.5, dur:.07},
+  th:{k:'fric', locus:[300,1600,2600], band:5200, q:0.7, dur:.06},
+  h :{k:'fric', locus:[500,1500,2500], band:1400, q:0.5, dur:.05},
+  ch:{k:'affr', locus:[300,1900,2400], band:3200, q:1.6, burst:2600, dur:.09},
+  j :{k:'affr', voiced:true, locus:[300,1900,2400], band:2600, q:1.5, burst:1900, dur:.075},
+  ts:{k:'affr', locus:[300,1700,2700], band:6000, q:2.0, burst:3200, dur:.075},
+  m :{k:'nasal',locus:[280,900,2200],  dur:.075},
+  n :{k:'nasal',locus:[280,1600,2600], dur:.065},
+  ng:{k:'nasal',locus:[280,2000,2600], dur:.075},
+  ny:{k:'nasal',locus:[280,2100,2800], dur:.07},
+  l :{k:'liq',  locus:[360,1100,2900], dur:.055},
+  ly:{k:'liq',  locus:[330,1900,2900], dur:.06},
+  r :{k:'liq',  locus:[350,1250,1550], dur:.055},   // the low F3 is what says /r/
+  w :{k:'glide',locus:[300,700,2200],  dur:.06},
+  y :{k:'glide',locus:[280,2200,3000], dur:.05},
+  kw:{k:'stop', asp:true, locus:[300,700,2200], burst:1600, bw:1.0, dur:.055},
+  ks:{k:'fric', locus:[300,1700,2700], band:6200, q:2.0, dur:.08}
 };
 
-/* very rough English grapheme→phoneme, enough to hear the word */
-function phonemize(sylRaw){
-  let s = (sylRaw||'').toLowerCase().replace(/[^a-zà-ÿ']/g,'');
-  if (!s) return {onset:[], coda:[]};
-  s = s.replace(/ck/g,'k').replace(/ph/g,'f').replace(/wh/g,'w')
-       .replace(/qu/g,'kw').replace(/x/g,'ks').replace(/gh/g,'');
+/* ---- per-language spelling ---- */
+const VLET = {
+  en:'aeiouy',
+  pt:'aeiouyáàâãéêíóôõúü',
+  es:'aeiouyáéíóúü',
+  fr:'aeiouyàâéèêëîïôùûü',
+  it:'aeiouyàéèìíîòóùú'
+};
+const DIGR = {
+  en:['sh','ch','th','ng','ph','ck','qu','wh','gh'],
+  pt:['nh','lh','ch','rr','ss','qu','gu','ç'],
+  es:['ll','ch','rr','qu','gu','ñ'],
+  fr:['ch','gn','qu','ph','ill','eau','ou','oi','au','ai','ei','eu'],
+  it:['gli','gn','sci','sce','chi','che','ghi','ghe','ci','ce','gi','ge','qu']
+};
+function consKey(tok, lang, next){
+  const n = (next||'')[0] || '';
+  if (lang==='pt'){
+    if (tok==='nh') return 'ny'; if (tok==='lh') return 'ly';
+    if (tok==='ch') return 'sh'; if (tok==='ç') return 's';
+    if (tok==='j')  return 'zh'; if (tok==='g' && /[ei]/.test(n)) return 'zh';
+    if (tok==='rr'||tok==='r') return 'r';
+    if (tok==='x')  return 'sh'; if (tok==='qu') return 'k'; if (tok==='gu') return 'g';
+    if (tok==='ss') return 's';
+  }
+  if (lang==='es'){
+    if (tok==='ll') return 'y'; if (tok==='ñ') return 'ny';
+    if (tok==='j')  return 'h'; if (tok==='g' && /[ei]/.test(n)) return 'h';
+    if (tok==='z')  return 's'; if (tok==='c' && /[ei]/.test(n)) return 's';
+    if (tok==='h')  return '';  if (tok==='v') return 'b';
+    if (tok==='qu') return 'k'; if (tok==='gu') return 'g'; if (tok==='ch') return 'ch';
+  }
+  if (lang==='fr'){
+    if (tok==='ch') return 'sh'; if (tok==='gn') return 'ny';
+    if (tok==='j')  return 'zh'; if (tok==='g' && /[eiy]/.test(n)) return 'zh';
+    if (tok==='c' && /[eiy]/.test(n)) return 's'; if (tok==='ç') return 's';
+    if (tok==='qu') return 'k';  if (tok==='h') return '';
+    if (tok==='ill')return 'y';  if (tok==='r') return 'r';
+  }
+  if (lang==='it'){
+    if (tok==='gli')return 'ly'; if (tok==='gn') return 'ny';
+    if (tok==='sci'||tok==='sce') return 'sh';
+    if (tok==='ci' ||tok==='ce')  return 'ch';
+    if (tok==='gi' ||tok==='ge')  return 'j';
+    if (tok==='chi'||tok==='che'||tok==='ghi'||tok==='ghe') return 'k';
+    if (tok==='z')  return 'ts'; if (tok==='h') return ''; if (tok==='qu') return 'kw';
+    if (tok==='c')  return 'k';  if (tok==='g') return 'g';
+  }
+  // english + shared
+  const base = {c:/[eiy]/.test(n)?'s':'k', q:'k', x:'ks', ph:'f', ck:'k', wh:'w', gh:'',
+                qu:'kw', g:/[eiy]/.test(n)?'j':'g', y:'y', ç:'s', ñ:'ny', ll:'l'};
+  return (base[tok] !== undefined) ? base[tok] : (CONS[tok] ? tok : '');
+}
+/* the vowel run of a syllable → a vowel or diphthong key */
+function vowelKey(run, lang, coda, isFinal, isFirst, silE){
+  const v = strip(run);
+  const nasalizing = coda && /^[mn]/.test(coda[0]||'');
+  if (lang==='pt'){
+    if (/ão|ãe/.test(run)) return 'ao';
+    if (/ã|â/.test(run) || (nasalizing && /^a/.test(v))) return 'an';
+    if (/õ/.test(run) || (nasalizing && /^o/.test(v))) return 'on';
+    if (nasalizing && /^[ei]/.test(v)) return 'in';
+    if (/^ou/.test(v)) return 'o';   if (/^ei/.test(v)) return 'ei';
+    if (/^eu/.test(v)) return 'eu';  if (/^ai/.test(v)) return 'ai';
+    if (/^au/.test(v)) return 'au';  if (/^oi/.test(v)) return 'oi';
+    if (/^ia/.test(v)) return 'ia';  if (/^io/.test(v)) return 'io';
+    if (/^[áa]/.test(v)) return 'a'; if (/^[éê]/.test(v)) return 'e';
+    if (/^oa/.test(v)) return 'oa';
+    if (/^e/.test(v))  return (isFinal && !isFirst && v==='e') ? 'schwa' : 'e';
+    if (/^i/.test(v))  return 'ee';  if (/^[óô]/.test(v)) return 'o';
+    if (/^o/.test(v))  return (isFinal && !isFirst && v==='o') ? 'oo' : 'o';
+    if (/^u/.test(v))  return 'oo';
+    return 'a';
+  }
+  if (lang==='es' || lang==='it'){
+    if (/^ie/.test(v)) return 'ea';  if (/^ia/.test(v)) return 'ia';
+    if (/^io/.test(v)) return 'io';  if (/^ue/.test(v)) return 'e';
+    if (/^ai/.test(v)) return 'ai';  if (/^ei/.test(v)) return 'ei';
+    if (/^oi/.test(v)) return 'oi';  if (/^au/.test(v)) return 'au';
+    if (/^a/.test(v)) return 'a';    if (/^e/.test(v)) return 'e';
+    if (/^i/.test(v)) return 'ee';   if (/^o/.test(v)) return 'o';
+    if (/^u/.test(v)) return 'oo';
+    return 'a';
+  }
+  if (lang==='fr'){
+    if (nasalizing && /^(a|e)/.test(v)) return 'an';
+    if (nasalizing && /^o/.test(v))     return 'on';
+    if (nasalizing && /^(i|u|y)/.test(v))return 'in';
+    if (/^eau|^au/.test(v)) return 'o'; if (/^ou/.test(v)) return 'oo';
+    if (/^oi/.test(v))  return 'wa';    if (/^eu|^oeu/.test(v)) return 'eu';
+    if (/^ai|^ei/.test(v)) return 'e';  if (/^u/.test(v)) return 'y';
+    if (/^é|^è|^ê|^e/.test(run) || /^e/.test(v)) return isFinal && !isFirst && !/[éèê]/.test(run) ? 'schwa' : 'e';
+    if (/^a/.test(v)) return 'a';       if (/^i|^y/.test(v)) return 'ee';
+    if (/^o/.test(v)) return 'o';
+    return 'schwa';
+  }
+  // english
+  const silentE = !!silE;
+  if (/^igh/.test(v)) return 'ai';
+  if (/^(ee|ea|ie|ey)/.test(v)) return 'ee';
+  if (/^oo/.test(v))  return 'oo';
+  if (/^(ou|ow)/.test(v)) return 'au';
+  if (/^(oi|oy)/.test(v)) return 'oi';
+  if (/^(ai|ay)/.test(v)) return 'ei';
+  if (/^(au|aw)/.test(v)) return 'o';
+  if (silentE){
+    if (/^a/.test(v)) return 'ei';  if (/^i/.test(v)) return 'ai';
+    if (/^o/.test(v)) return 'ou';  if (/^u/.test(v)) return 'ju';
+    if (/^e/.test(v)) return 'ee';
+  }
+  const openEnd = !coda || !coda.length;
+  if (/^a/.test(v)) return openEnd && !isFirst ? 'schwa' : 'ae';
+  if (/^e/.test(v)) return openEnd && !isFirst ? 'schwa' : 'e';
+  if (/^i|^y/.test(v)) return openEnd && !isFirst ? 'ee' : 'ih';
+  if (/^o/.test(v)) return openEnd ? 'ou' : 'o';
+  if (/^u/.test(v)) return 'uh';
+  return 'schwa';
+}
+
+/* English spelling lies more than the others; these are the lies that
+   show up most in lyrics, so they get looked up instead of guessed */
+const EN_EXC = {
+  love:'uh', come:'uh', some:'uh', done:'uh', none:'uh', one:'uh', above:'uh', glove:'uh',
+  of:'uh', from:'uh', what:'uh', does:'uh', was:'uh', us:'uh', just:'uh', nothing:'uh',
+  move:'oo', lose:'oo', prove:'oo', do:'oo', to:'oo', who:'oo', through:'oo', you:'oo', two:'oo',
+  gone:'o', want:'o', water:'o', all:'o', call:'o', fall:'o', small:'o',
+  have:'ae', give:'ih', live:'ih', said:'e', again:'e', many:'e', any:'e', friend:'e', dead:'e',
+  heart:'a', are:'a', far:'a', car:'a', dark:'a',
+  word:'schwa', work:'schwa', world:'schwa', earth:'schwa', the:'schwa', a:'schwa',
+  eye:'ai', eyes:'ai', buy:'ai', bye:'ai', why:'ai', my:'ai', by:'ai', try:'ai', cry:'ai', sky:'ai',
+  night:'ai', light:'ai', right:'ai', might:'ai', sight:'ai', fight:'ai', tight:'ai',
+  door:'o', floor:'o', more:'o', before:'o', your:'o', four:'o'
+};
+
+/* letters → {onset, nuc, coda} for one syllable */
+function g2p(sylRaw, lang, isFirst, isFinal){
+  const letters = VLET[lang], isV = c => letters.includes(c);
+  let s = (sylRaw||'').toLowerCase().replace(/[^\p{L}']/gu,'');
+  if (!s) return {onset:[], nuc:'schwa', coda:[]};
+  const digr = DIGR[lang];
   const toks = [];
   for (let i=0;i<s.length;i++){
-    const two = s.substr(i,2);
-    if (two==='sh'||two==='ch'||two==='th'||two==='ng'){ toks.push(two); i++; continue; }
-    let c = s[i];
-    if (c==='c') c = /[eiy]/.test(s[i+1]||'') ? 's' : 'k';
-    if (c==='g' && /[eiy]/.test(s[i+1]||'')) c = 'j';
-    if (c==='q') c = 'k';
-    toks.push(c);
+    let hit = null;
+    for (const d of digr){ if (s.substr(i, d.length) === d){ hit = d; break; } }
+    if (hit && hit.length > 1 && !isV(hit[0])){
+      toks.push(hit); i += hit.length-1;
+      if (lang==='it' && /^(ci|ce|gi|ge|sci|sce|chi|che|ghi|ghe)$/.test(hit)) toks.push(hit.slice(-1));
+      continue;
+    }
+    toks.push(s[i]);
   }
-  const vAt = toks.findIndex(t => t.length===1 && VOWELS[t]);
-  if (vAt < 0) return {onset:toks.filter(t=>CONS[t]).slice(-2), coda:[]};
+  const vAt = toks.findIndex(t => t.length===1 && isV(t));
+  if (vAt < 0){
+    const on = toks.map((t,i)=>consKey(t, lang, toks[i+1])).filter(c=>CONS[c]);
+    return { onset:on.slice(-2), nuc:'schwa', coda:[], voiceless:true };
+  }
   let vEnd = vAt;
-  while (vEnd+1 < toks.length && toks[vEnd+1].length===1 && VOWELS[toks[vEnd+1]]) vEnd++;
-  const onset = toks.slice(0, vAt).filter(t=>CONS[t]).slice(-2);
-  let coda = toks.slice(vEnd+1).filter(t=>CONS[t]);
-  // silent final e ("home", "name") — it shouldn't get sung
-  if (coda.length && /e$/.test(s) && vEnd < toks.length-1) coda = coda.slice(0,2);
-  return { onset, coda: coda.slice(0,2) };
+  while (vEnd+1 < toks.length && toks[vEnd+1].length===1 && isV(toks[vEnd+1])) vEnd++;
+  const run   = toks.slice(vAt, vEnd+1).join('');
+  const onset = toks.slice(0, vAt).map((t,i)=>consKey(t, lang, toks[i+1])).filter(c=>CONS[c]).slice(-2);
+  let codaT   = toks.slice(vEnd+1);
+  let coda    = codaT.map((t,i)=>consKey(t, lang, codaT[i+1])).filter(c=>CONS[c]);
+  const silE  = codaT.length > 0 && codaT[codaT.length-1] === 'e';   // "home", "name", "time"
+  let   nuc   = vowelKey(run, lang, coda, isFinal, isFirst, silE);
+  if (lang === 'en'){
+    const key = s.replace(/[^a-z]/g,'');
+    if (EN_EXC[key]) nuc = EN_EXC[key];
+    else if (/igh/.test(key)) nuc = 'ai';
+    else if (silE && /^y/.test(strip(run))) nuc = 'ai';
+  }
+  if (NASAL.has(nuc)) coda = coda.filter(c => c!=='m' && c!=='n');   // absorbed into the vowel
+  if (lang==='fr' && isFinal) coda = coda.filter(c => 'crfl'.includes(c[0]));  // silent final consonants
+  if (lang==='pt' && isFinal) coda = coda.map(c => c==='s' ? 'sh' : c);        // European Portuguese
+  return { onset, nuc, coda: coda.slice(0,2) };
 }
-const isVowel = c => !!VOWELS[c];
-const mtof = m => 440 * Math.pow(2,(m-69)/12);
 
-/* split a word into singable syllables */
-function splitSyl(word){
+/* ---- syllable splitting ---- */
+function splitSyl(word, lang){
+  const letters = VLET[lang], isV = c => letters.includes(c);
   const c=[...word.toLowerCase()], parts=[]; let cur='';
   for (let i=0;i<c.length;i++){
     cur += c[i];
-    if (isVowel(c[i])){
-      while (i+1<c.length && isVowel(c[i+1])) cur += c[++i];       // diphthong
-      if (i+2<c.length && !isVowel(c[i+1]) && isVowel(c[i+2])){    // V-CV
-        parts.push(cur); cur='';
-      } else if (i+3<c.length && !isVowel(c[i+1]) && !isVowel(c[i+2]) && isVowel(c[i+3])){
-        cur += c[++i]; parts.push(cur); cur='';                    // VC-CV
-      } else if (i+4<c.length && !isVowel(c[i+1]) && !isVowel(c[i+2]) && !isVowel(c[i+3]) && isVowel(c[i+4])){
-        cur += c[++i]; parts.push(cur); cur='';                    // VC-CCV ("kit|chen")
-      }
+    if (isV(c[i])){
+      while (i+1<c.length && isV(c[i+1])) cur += c[++i];
+      if (i+2<c.length && !isV(c[i+1]) && isV(c[i+2])){ parts.push(cur); cur=''; }
+      else if (i+3<c.length && !isV(c[i+1]) && !isV(c[i+2]) && isV(c[i+3])){ cur += c[++i]; parts.push(cur); cur=''; }
+      else if (i+4<c.length && !isV(c[i+1]) && !isV(c[i+2]) && !isV(c[i+3]) && isV(c[i+4])){ cur += c[++i]; parts.push(cur); cur=''; }
     }
   }
-  // a leftover chunk with a vowel of its own is its own syllable ("mis|sing"),
-  // otherwise it's just a trailing consonant cluster ("train")
   if (cur){
-    if (parts.length && ![...cur].some(isVowel)) parts[parts.length-1] += cur;
+    if (parts.length && ![...cur].some(isV)) parts[parts.length-1] += cur;
     else parts.push(cur);
   }
-  // silent final e: "ho|me" is one sung note, not two
-  const KEEP_E = new Set(['maybe','recipe','karate','finale','simile','sesame','apostrophe','epitome','catastrophe','cafe','latte']);
-  if (parts.length > 1 && /^[bcdfghjklmnpqrstvwxz]+e$/.test(parts[parts.length-1]) && !KEEP_E.has(word)){
-    const tail = parts.pop();
-    parts[parts.length-1] += tail;
+  const KEEP_E = new Set(['maybe','recipe','karate','finale','simile','sesame','apostrophe','epitome','cafe','latte']);
+  if (lang==='en' && parts.length>1 && /^[bcdfghjklmnpqrstvwxz]+e$/.test(parts[parts.length-1]) && !KEEP_E.has(word)){
+    const tail = parts.pop(); parts[parts.length-1] += tail;
   }
   return parts.length ? parts : [word];
 }
-function vowelOf(part){
-  for (const ch of part.toLowerCase()) if (VOWELS[ch]) return VOWELS[ch];
-  return 'm';
-}
-/* a whole line → [{txt, v}] keeping the original spelling for display */
-function syllabifyLine(text){
+
+/* a line → sung syllables, keeping the original spelling for the karaoke */
+function syllabifyLine(text, lang){
+  lang = lang || 'en';
   const out = [];
   text.split(/(\s+)/).forEach(tok=>{
     if (!tok) return;
     if (/^\s+$/.test(tok)){ if (out.length) out[out.length-1].txt += tok; return; }
     const m = tok.match(/^([^\p{L}]*)([\p{L}'’-]+)([^\p{L}]*)$/u);
-    if (!m){ if (out.length) out[out.length-1].txt += tok; else out.push({txt:tok, v:'m'}); return; }
+    if (!m){ if (out.length) out[out.length-1].txt += tok; else out.push({txt:tok, nuc:'schwa', onset:[], coda:[]}); return; }
     const [, pre, core, post] = m;
-    const parts = splitSyl(core);
+    const parts = splitSyl(core, lang);
     let cursor = 0;
-    parts.forEach((p, i)=>{
+    parts.forEach((p,i)=>{
       const raw = core.substr(cursor, p.length); cursor += p.length;
-      const ph = phonemize(p);
+      const ph = g2p(p, lang, i===0, i===parts.length-1);
       out.push({ txt:(i===0?pre:'') + raw + (i===parts.length-1?post:''),
-                 v:vowelOf(p), onset:ph.onset, coda:ph.coda });
+                 nuc:ph.nuc, onset:ph.onset, coda:ph.coda,
+                 word:core.toLowerCase(), first:i===0, lastOfWord:i===parts.length-1 });
     });
   });
   return out;
 }
-
-/* ---------- arrangement: turn the lyric sheet into scheduled events ---------- */
+/* ================================================================
+   5 · ARRANGEMENT
+   ================================================================ */
+const SCALES = {
+  minorPent:[0,3,5,7,10], majorPent:[0,2,4,7,9],
+  aeolian:[0,2,3,5,7,8,10], lydian:[0,2,4,6,7,9,11]
+};
+const REGISTERS = {
+  soprano:{shift:1.26, oct:26, name:'soprano'},
+  alto:   {shift:1.11, oct:21, name:'alto'},
+  tenor:  {shift:1.00, oct:14, name:'tenor'},
+  bass:   {shift:0.86, oct:7,  name:'bass'}
+};
+const mtof = m => 440*Math.pow(2,(m-69)/12);
 function scaleNote(root, sc, deg){
   const oct = Math.floor(deg/sc.length);
   return root + sc[((deg%sc.length)+sc.length)%sc.length] + 12*oct;
 }
-function arrange(song){
-  const sc    = SCALES[song.scale];
-  const beat  = 60/song.bpm;
-  const step  = beat/2;                 // eighth note
-  const barD  = beat*4;
-  const reg   = REGISTERS[song.register] || REGISTERS.alto;
-  const r     = makeRng(song.seed ^ 0x9e3779b9);
-  const INTRO = 2, LINE_BARS = 2, OUTRO = 2;
 
-  // bar-by-bar plan
+function arrange(song){
+  const sc   = SCALES[song.scale];
+  const beat = 60/song.bpm, step = beat/2, barD = beat*4;
+  const reg  = REGISTERS[song.register] || REGISTERS.alto;
+  const r    = makeRng(song.seed ^ 0x9e3779b9);
+  const INTRO = 2, LINE_BARS = 2, OUTRO = 2;
+  const inst = (song.instr||[]).join(' ');
+  const padType  = /string|cordas|cuerdas|cordes|archi/.test(inst) ? 'sawtooth' : 'triangle';
+  const leadType = /guitar|guitarra|chitarra|punk|rock/.test(inst) || song.mood==='aggro' ? 'square' : 'triangle';
+  const quiet    = /piano|folk|fado|ambient|bossa/.test(inst);
+
   const plan = [];
   for (let i=0;i<INTRO;i++) plan.push({kind:'intro'});
   song.sections.forEach((sec, si)=>{
-    const chorus = /chorus/i.test(sec.label);
+    const chorus = /chorus|refr|estribillo|refrain|ritornello/i.test(sec.label);
     sec.lines.forEach((text, li)=>{
       plan.push({kind:'line', si, li, text, chorus});
       plan.push({kind:'hold', chorus});
@@ -704,85 +1292,98 @@ function arrange(song){
   for (let i=0;i<OUTRO;i++) plan.push({kind:'outro'});
 
   const events = [], lines = [];
-  const vibRate  = song.aggro ? 6.3 : 5.1 + r()*0.7;
-  const vibDepth = song.aggro ? 0.006 : 0.013;
-  let lastVocal = null;
+  const vibDepth = song.mood==='aggro' ? 0.008 : 0.016;
+  const vibRate  = song.mood==='aggro' ? 6.2 : 5.2 + r()*0.6;
 
   plan.forEach((bar, b)=>{
-    const t0  = b * barD;
+    const t0  = b*barD;
     const deg = (bar.chorus ? [3,4,0,5] : [0,5,3,4])[b % 4];
     const chordRoot = scaleNote(song.root, sc, deg);
-    const full = bar.kind !== 'intro' && bar.kind !== 'outro';
+    const full = bar.kind==='line' || bar.kind==='hold';
 
-    // pad
     [0,2,4].forEach((k,n)=>{
-      events.push({t:t0, kind:'tone', f:mtof(scaleNote(chordRoot, sc, deg+k) + (n===2?12:0)),
-                   dur:barD*0.96, type:'triangle', gain:0.05, filt:1600});
+      events.push({t:t0, kind:'tone', f:mtof(scaleNote(chordRoot, sc, deg+k)+(n===2?12:0)),
+                   dur:barD*0.96, type:padType, gain:0.045, filt:1700});
     });
-    // bass
-    events.push({t:t0,          kind:'tone', f:mtof(chordRoot-12), dur:beat*1.6, type:'sawtooth', gain:0.15, filt:320});
-    events.push({t:t0+beat*2,   kind:'tone', f:mtof(chordRoot-12), dur:beat*1.6, type:'sawtooth', gain:0.13, filt:320});
-    // drums
-    if (full || bar.kind==='outro'){
+    events.push({t:t0,        kind:'tone', f:mtof(chordRoot-12), dur:beat*1.6, type:'sawtooth', gain:0.14, filt:300});
+    events.push({t:t0+beat*2, kind:'tone', f:mtof(chordRoot-12), dur:beat*1.6, type:'sawtooth', gain:0.12, filt:300});
+
+    if ((full || bar.kind==='outro') && !quiet){
       for (let s=0;s<8;s++){
-        const t = t0 + s*step;
-        if (s%2===1) events.push({t, kind:'noise', dur:0.06, gain:song.aggro?0.075:0.045});
-        if (s===0 || s===4) events.push({t, kind:'tone', f:70, dur:0.17, type:'sine', gain:song.aggro?0.34:0.26, filt:200});
-        if ((song.aggro || bar.chorus) && (s===2 || s===6)) events.push({t, kind:'noise', dur:0.2, gain:0.1});
+        const t = t0+s*step;
+        if (s%2===1) events.push({t, kind:'noise', dur:0.06, gain:song.mood==='aggro'?0.07:0.04});
+        if (s===0||s===4) events.push({t, kind:'tone', f:70, dur:0.17, type:'sine', gain:song.mood==='aggro'?0.32:0.24, filt:200});
+        if ((song.mood==='aggro'||bar.chorus) && (s===2||s===6)) events.push({t, kind:'noise', dur:0.2, gain:0.09});
       }
     }
-    // instrumental hook in the intro / outro, where no one is singing
     if (!full){
-      for (let s=0;s<8;s+=2){
-        if (r()<0.7){
-          const n = scaleNote(song.root+12, sc, deg + Math.floor(r()*5));
-          events.push({t:t0+s*step, kind:'tone', f:mtof(n), dur:step*1.6,
-                       type: song.aggro?'square':'triangle', gain:0.1, filt:4000});
-        }
+      for (let s=0;s<8;s+=2) if (r()<0.7){
+        events.push({t:t0+s*step, kind:'tone', f:mtof(scaleNote(song.root+12, sc, deg+Math.floor(r()*5))),
+                     dur:step*1.6, type:leadType, gain:0.09, filt:4000});
       }
     }
 
-    // ---- the vocal line ----
+    /* ---- the sung line: one continuous phrase ---- */
     if (bar.kind === 'line'){
-      const syls = syllabifyLine(bar.text);
-      const span = LINE_BARS * 8;                       // eighths available
-      const unit = syls.length > 12 ? span/(syls.length+2) : 1;
-      const contour = bar.chorus ? [4,3,4,5,4,5,3,4,5,4,3,4,5,3,4,5]
-                                 : [0,1,2,1,0,2,3,2,1,2,0,1,2,1,0,2];
-      const lineSyls = [];
+      const syls = syllabifyLine(bar.text, song.lang);
+      const n = syls.length;
+      const span = LINE_BARS*8;
+      const unit = n > 12 ? span/(n+2) : 1;
+      const base = deg + (bar.chorus ? 4 : 0);
+      let walk = 0;
+      const notes = [], lineSyls = [];
       syls.forEach((syl, k)=>{
-        const t = t0 + (1 + k*unit) * step;
-        const last = k === syls.length-1;
-        const dur  = step * (last ? Math.max(2, unit*3) : unit*0.96);
-        const note = scaleNote(song.root + reg.oct - 12, sc, deg + contour[k % contour.length]);
-        const f = mtof(note);
-        events.push({t, kind:'voice', f, dur, vowel:syl.v, gain: song.aggro?0.23:0.2,
-                     onset:syl.onset, coda:syl.coda, last,
-                     reg:song.register, vibRate, vibDepth, from:lastVocal});
+        const last = k === n-1;
+        const t = t0 + (1 + k*unit)*step;
+        const dur = step * (last ? Math.max(2.4, unit*3.2) : unit*0.98);
+        // a singable line: mostly stepwise, occasional leap, resolve at the end
+        const roll = r();
+        walk += roll<0.34 ? 0 : roll<0.72 ? (r()<0.5?1:-1) : (r()<0.5?2:-2);
+        walk = Math.max(-2, Math.min(7, walk));
+        if (last) walk = [0,2,4].reduce((a,c)=>Math.abs(c-walk)<Math.abs(a-walk)?c:a, 0);
+        const f = mtof(scaleNote(song.root + reg.oct - 12, sc, base + walk));
+        notes.push({t, dur, f, syl});
         lineSyls.push({txt:syl.txt, t, dur});
-        lastVocal = f;
       });
+      events.push({t:notes[0].t - 0.16, kind:'phrase', notes, reg:song.register,
+                   gain: song.mood==='aggro' ? 0.24 : 0.21, vibRate, vibDepth});
       lines.push({si:bar.si, li:bar.li, text:bar.text, syls:lineSyls,
-                  t0:lineSyls[0].t, t1:t0 + LINE_BARS*barD});
+                  t0:lineSyls[0].t, t1:t0+LINE_BARS*barD});
     }
   });
 
   events.sort((a,b)=>a.t-b.t);
-  return { events, lines, dur: plan.length*barD + 0.6, song };
+  return { events, lines, dur: plan.length*barD + 0.8, song };
 }
 
-/* ---------- audio engine ---------- */
+/* ================================================================
+   6 · THE VOICE
+   One glottal source per line. The formants move continuously from
+   consonant locus to vowel to the next consonant, so the line is
+   sung as a phrase instead of as a row of separate notes.
+   ================================================================ */
 const Engine = (()=>{
-  let ctx, master, analyser, data;
+  let ctx, master, comp, analyser, data, glot;
   let nodes=[], timer=null, startAt=0, idx=0, arr=null, cur=null, cb={};
 
   function ensure(){
     if (ctx) return;
     ctx = new (window.AudioContext||window.webkitAudioContext)();
-    master = ctx.createGain(); master.gain.value = 0.62;
+    master = ctx.createGain(); master.gain.value = 0.6;
+    comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -18; comp.ratio.value = 3; comp.attack.value = 0.01;
     analyser = ctx.createAnalyser(); analyser.fftSize = 512;
     data = new Uint8Array(analyser.frequencyBinCount);
-    master.connect(analyser); analyser.connect(ctx.destination);
+    master.connect(comp); comp.connect(analyser); analyser.connect(ctx.destination);
+  }
+  /* a glottal pulse has a steeper spectral slope than a sawtooth —
+     that one change takes most of the buzz out of the voice */
+  function glottal(){
+    if (glot) return glot;
+    const N = 26, real = new Float32Array(N), imag = new Float32Array(N);
+    for (let n=1;n<N;n++) imag[n] = 1/Math.pow(n,1.75);
+    glot = ctx.createPeriodicWave(real, imag, {disableNormalization:false});
+    return glot;
   }
 
   function tone(e, at){
@@ -793,34 +1394,28 @@ const Engine = (()=>{
     g.gain.exponentialRampToValueAtTime(0.0001, at+e.dur);
     o.connect(g);
     let out = g;
-    if (e.filt){ const f = ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=e.filt; g.connect(f); out=f; }
+    if (e.filt){ const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=e.filt; g.connect(f); out=f; }
     out.connect(master);
     o.start(at); o.stop(at+e.dur+0.05);
     nodes.push(o);
   }
-
   function noise(e, at){
-    const len = Math.max(1, Math.floor(ctx.sampleRate*e.dur));
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const ch = buf.getChannelData(0);
+    const len = Math.max(2, Math.floor(ctx.sampleRate*e.dur));
+    const buf = ctx.createBuffer(1,len,ctx.sampleRate), ch = buf.getChannelData(0);
     for (let i=0;i<len;i++) ch[i] = (Math.random()*2-1)*Math.pow(1-i/len,3);
     const s = ctx.createBufferSource(); s.buffer = buf;
     const g = ctx.createGain(); g.gain.value = e.gain;
-    const f = ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=5200;
+    const f = ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value = 5200;
     s.connect(f); f.connect(g); g.connect(master);
     s.start(at); nodes.push(s);
   }
-
-  /* short burst / hiss used for plosives and fricatives */
   function hiss(at, dur, freq, q, gain, shape){
+    if (at < ctx.currentTime) at = ctx.currentTime;
     const len = Math.max(2, Math.floor(ctx.sampleRate*dur));
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const ch = buf.getChannelData(0);
+    const buf = ctx.createBuffer(1,len,ctx.sampleRate), ch = buf.getChannelData(0);
     for (let i=0;i<len;i++){
       const p = i/len;
-      const envl = shape==='burst' ? Math.pow(1-p, 4)         // click that decays fast
-                 : Math.sin(Math.PI*Math.min(1, p*3.2));      // hiss that swells and holds
-      ch[i] = (Math.random()*2-1) * envl;
+      ch[i] = (Math.random()*2-1) * (shape==='burst' ? Math.pow(1-p,4) : Math.sin(Math.PI*Math.min(1,p*3.2)));
     }
     const s = ctx.createBufferSource(); s.buffer = buf;
     const bp = ctx.createBiquadFilter(); bp.type='bandpass';
@@ -828,194 +1423,209 @@ const Engine = (()=>{
     const g = ctx.createGain(); g.gain.value = gain;
     s.connect(bp); bp.connect(g); g.connect(master);
     s.start(at); nodes.push(s);
-    return s;
   }
 
-  /* ---- the voice ----
-     One syllable = optional consonant articulation, a sung vowel, and an
-     optional closing consonant. The formants start at the consonant's
-     locus and slide into the vowel; that transition is what the ear
-     actually reads as a word.                                        */
-  function voice(e, at){
-    const reg  = REGISTERS[e.reg] || REGISTERS.alto;
-    const sh   = reg.shift;
-    const targ = (FORMANTS[e.vowel] || FORMANTS.a).map(f => Math.min(f*sh, ctx.sampleRate/2-200));
+  function phrase(e, base){
+    const reg = REGISTERS[e.reg] || REGISTERS.alto, sh = reg.shift;
+    const notes = e.notes, now = ctx.currentTime;
+    const nyq = ctx.sampleRate/2 - 200;
+    const F = f => Math.min(f*sh, nyq);
+    const t0   = Math.max(now+0.02, base + notes[0].t);
+    const tEnd = base + notes[notes.length-1].t + notes[notes.length-1].dur;
+    if (tEnd <= now + 0.05) return;
 
-    // ---- plan the onset ----
-    const onset = (e.onset||[]).map(c=>CONS[c]).filter(Boolean);
-    const lead  = onset[onset.length-1] || null;          // the one touching the vowel
-    const pre   = onset.length > 1 ? onset[0] : null;     // e.g. the s in "still"
-    let onDur = 0;
-    if (lead) onDur = Math.min(lead.dur, e.dur*0.4);
-    if (pre)  onDur = Math.min(onDur + pre.dur, e.dur*0.55);
-    // singers place the consonant BEFORE the beat so the vowel lands on it
-    const cStart = Math.max(ctx.currentTime + 0.002, at - onDur);
-    const vAt    = Math.max(cStart + onDur, at);           // vowel on the beat
-    const vDur   = Math.max(0.09, e.dur - 0.015);
-    const vEnd   = vAt + vDur;
+    // ---- glottal source ----
+    const osc = ctx.createOscillator();
+    osc.setPeriodicWave(glottal());
+    osc.frequency.setValueAtTime(notes[0].f*0.94, t0);
+    osc.frequency.exponentialRampToValueAtTime(notes[0].f, t0+0.11);       // scoop in
+    let prevF = notes[0].f, lastPitchT = t0+0.11;
+    notes.forEach((n,i)=>{
+      if (!i) return;
+      const t = Math.max(lastPitchT+0.02, base+n.t);
+      const slur = n.syl.first ? 0.05 : 0.028;    // slide between words, quicker inside one
+      const a = Math.max(lastPitchT+0.005, t-slur);
+      osc.frequency.setValueAtTime(prevF, a);
+      osc.frequency.exponentialRampToValueAtTime(n.f, t+0.015);
+      prevF = n.f; lastPitchT = t+0.02;
+    });
 
-    // ---- consonant noise ----
-    let x = cStart;
-    if (pre){
-      const d = Math.min(pre.dur, onDur*0.6);
-      if (pre.k==='fric'||pre.k==='affr') hiss(x, d, pre.band, pre.q, e.gain*0.5, 'hiss');
-      else if (pre.k==='stop') hiss(x+d*0.6, 0.02, pre.burst, pre.bw, e.gain*0.55, 'burst');
-      x += d;
-    }
-    if (lead){
-      if (lead.k==='fric')  hiss(x, Math.max(0.02, vAt-x), lead.band, lead.q, e.gain*0.55, 'hiss');
-      if (lead.k==='affr'){ hiss(x, 0.018, lead.burst, 1.2, e.gain*0.5, 'burst');
-                            hiss(x+0.018, Math.max(0.02, vAt-x-0.018), lead.band, lead.q, e.gain*0.5, 'hiss'); }
-      if (lead.k==='stop')  hiss(Math.max(x, vAt-0.022), 0.022, lead.burst, lead.bw, e.gain*0.7, 'burst');
-    }
-
-    // ---- the voiced source ----
-    const voicedOnset = lead && (lead.k==='nasal' || lead.k==='liq' || lead.k==='glide' ||
-                                 (lead.k!=='stop' && lead.voiced));
-    const srcAt = voicedOnset ? cStart : (lead && lead.k==='stop' ? Math.max(cStart, vAt-0.006) : vAt);
-
-    const o = ctx.createOscillator(); o.type='sawtooth';
-    if (e.from && Math.abs(e.from-e.f) > 1){
-      o.frequency.setValueAtTime(e.from, srcAt);
-      o.frequency.exponentialRampToValueAtTime(e.f, srcAt+Math.min(0.08, vDur*0.25));  // portamento
-    } else o.frequency.setValueAtTime(e.f, srcAt);
-
+    // ---- vibrato, only where a note is long enough to hold ----
     const lfo = ctx.createOscillator(); lfo.frequency.value = e.vibRate;
-    const lg = ctx.createGain();
-    lg.gain.setValueAtTime(0, vAt);
-    lg.gain.linearRampToValueAtTime(e.f*e.vibDepth, vAt+Math.min(0.3, vDur*0.7));
-    lfo.connect(lg); lg.connect(o.frequency);
-    lfo.start(srcAt); lfo.stop(vEnd+0.14);
+    const lg  = ctx.createGain(); lg.gain.setValueAtTime(0, t0);
+    notes.forEach(n=>{
+      const t = Math.max(t0, base+n.t);
+      const depth = n.dur > 0.4 ? n.f*e.vibDepth : 0;
+      lg.gain.setValueAtTime(lg.gain.value||0, t);
+      lg.gain.linearRampToValueAtTime(depth, t+Math.min(0.32, n.dur*0.65));
+    });
+    lfo.connect(lg); lg.connect(osc.frequency);
+    lfo.start(t0); lfo.stop(tEnd+0.2);
 
-    // breath at the vowel onset
-    const bl = Math.max(2, Math.floor(ctx.sampleRate*Math.min(0.18, vDur)));
-    const bb = ctx.createBuffer(1, bl, ctx.sampleRate);
-    const bc = bb.getChannelData(0);
-    for (let i=0;i<bl;i++) bc[i] = Math.random()*2-1;
-    const breath = ctx.createBufferSource(); breath.buffer = bb;
-    const bg = ctx.createGain();
-    bg.gain.setValueAtTime(e.gain*0.4, vAt);
-    bg.gain.exponentialRampToValueAtTime(0.0001, vAt+Math.min(0.15, vDur));
-
-    // ---- amplitude envelope ----
-    const coda = (e.coda||[]).map(c=>CONS[c]).filter(Boolean);
-    const codaC = coda[0] || null;
-    const voicedCoda = codaC && (codaC.k==='nasal' || codaC.k==='liq' || codaC.k==='glide');
-    const codaDur = codaC ? Math.min(codaC.dur, vDur*0.3) : 0;
-
+    // ---- one amplitude envelope for the whole line ----
     const env = ctx.createGain();
-    env.gain.setValueAtTime(0.0001, srcAt);
-    if (voicedOnset){
-      env.gain.exponentialRampToValueAtTime(e.gain*0.4, cStart+0.018);   // the murmur of m/n/l
-      env.gain.linearRampToValueAtTime(e.gain, vAt+0.03);
-    } else {
-      env.gain.exponentialRampToValueAtTime(e.gain, vAt+Math.min(0.05, vDur*0.3));
-    }
-    env.gain.setValueAtTime(e.gain, vAt + vDur*0.68);
-    env.gain.exponentialRampToValueAtTime(0.0001, vEnd + (voicedCoda ? codaDur : 0.02));
+    env.gain.setValueAtTime(0.0001, t0);
+    env.gain.exponentialRampToValueAtTime(e.gain, t0+0.07);
+    notes.forEach((n,i)=>{
+      if (!i) return;
+      const t = base+n.t, w = Math.min(0.05, n.dur*0.28);
+      const lead = CONS[(n.syl.onset||[]).slice(-1)[0]];
+      const dip = lead ? (lead.k==='stop' ? 0.03 : lead.k==='fric'||lead.k==='affr' ? 0.12 : 0.45) : 0.72;
+      env.gain.setValueAtTime(e.gain, Math.max(t0+0.08, t-w*2));
+      env.gain.linearRampToValueAtTime(e.gain*dip, t-w*0.35);
+      env.gain.linearRampToValueAtTime(e.gain, t+w);
+    });
+    env.gain.setValueAtTime(e.gain, Math.max(t0+0.1, tEnd-0.1));
+    env.gain.exponentialRampToValueAtTime(0.0001, tEnd+0.07);
+    osc.connect(env);
 
-    o.connect(env); breath.connect(bg); bg.connect(env);
+    // breath before the line, and breathiness under the first vowel
+    hiss(t0-0.13, 0.12, 900, 0.4, e.gain*0.16, 'hiss');
+    hiss(t0, 0.1, 2200, 0.5, e.gain*0.2, 'hiss');
 
-    // ---- formants, with the locus transitions ----
+    // ---- formants: three moving bands, one fixed singer's formant, one nasal band ----
     const mix = ctx.createGain();
-    targ.forEach((f, i)=>{
+    const bands = [0,1,2].map(i=>{
       const bp = ctx.createBiquadFilter(); bp.type='bandpass';
       bp.Q.value = 7 + i*4;
-      const startF = lead ? Math.min(lead.locus[i]*sh, ctx.sampleRate/2-200) : f;
-      bp.frequency.setValueAtTime(startF, srcAt);
-      bp.frequency.linearRampToValueAtTime(f, vAt + Math.min(0.06, vDur*0.35));   // slide into the vowel
-      if (codaC){                                                                 // and out into the coda
-        const cf = Math.min(codaC.locus[i]*sh, ctx.sampleRate/2-200);
-        bp.frequency.setValueAtTime(f, Math.max(vAt+0.07, vEnd-codaDur-0.02));
-        bp.frequency.linearRampToValueAtTime(cf, vEnd);
-      }
-      const g = ctx.createGain(); g.gain.value = [1,0.6,0.34][i];
+      const g = ctx.createGain(); g.gain.value = [1,0.62,0.36][i];
       env.connect(bp); bp.connect(g); g.connect(mix);
+      return bp;
     });
-    const dry = ctx.createGain(); dry.gain.value = 0.13;
+    const sing = ctx.createBiquadFilter();                 // the singer's formant, ~3kHz presence
+    sing.type='bandpass'; sing.frequency.value = F(3050); sing.Q.value = 9;
+    const singG = ctx.createGain(); singG.gain.value = 0.2;
+    env.connect(sing); sing.connect(singG); singG.connect(mix);
+
+    const nasal = ctx.createBiquadFilter();                // switched in for nasal vowels
+    nasal.type='bandpass'; nasal.frequency.value = 260; nasal.Q.value = 8;
+    const nasalG = ctx.createGain(); nasalG.gain.setValueAtTime(0, t0);
+    env.connect(nasal); nasal.connect(nasalG); nasalG.connect(mix);
+
+    const dry = ctx.createGain(); dry.gain.value = 0.12;
     env.connect(dry); dry.connect(mix);
     mix.connect(master);
 
-    o.start(srcAt); o.stop(vEnd+0.14);
-    breath.start(vAt);
-    nodes.push(o, lfo, breath);
+    // formant automation across the whole phrase
+    const cur3 = [F(V.schwa[0]), F(V.schwa[1]), F(V.schwa[2])];
+    bands.forEach((bp,i)=> bp.frequency.setValueAtTime(cur3[i], t0));
+    let lastT = t0;
+    notes.forEach((n,k)=>{
+      const s = n.syl;
+      const tS = Math.max(lastT+0.01, base+n.t), tE = tS + n.dur;
+      const [v1, v2] = vowelTargets(s.nuc);
+      const lead  = CONS[(s.onset||[]).slice(-1)[0]];
+      const codaC = CONS[(s.coda||[])[0]];
+      const glideAt = tS + n.dur*0.45, glideTo = tS + n.dur*0.82;
 
-    // ---- closing consonant ----
-    if (codaC){
-      const cAt = vEnd - codaDur*0.5;
-      if (codaC.k==='fric'||codaC.k==='affr') hiss(cAt, codaC.dur, codaC.band, codaC.q, e.gain*0.5, 'hiss');
-      if (codaC.k==='stop')                   hiss(vEnd+0.015, 0.02, codaC.burst, codaC.bw, e.gain*0.45, 'burst');
-      // nasal / liquid codas are carried by the formant ramp above
-      const second = coda[1];
-      if (second && (second.k==='fric'||second.k==='affr'))
-        hiss(cAt+codaDur*0.7, second.dur, second.band, second.q, e.gain*0.4, 'hiss');
-    }
+      bands.forEach((bp,i)=>{
+        if (lead){
+          const a = Math.max(lastT+0.005, tS - Math.min(0.05, n.dur*0.4));
+          bp.frequency.setValueAtTime(cur3[i], a);
+          bp.frequency.linearRampToValueAtTime(F(lead.locus[i]), tS-0.004);
+        }
+        bp.frequency.linearRampToValueAtTime(F(v1[i]), tS + Math.min(0.055, n.dur*0.35));
+        cur3[i] = F(v1[i]);
+        if (v2 && glideTo > glideAt){
+          bp.frequency.setValueAtTime(cur3[i], glideAt);
+          bp.frequency.linearRampToValueAtTime(F(v2[i]), glideTo);
+          cur3[i] = F(v2[i]);
+        }
+        if (codaC && tE-0.05 > glideTo){
+          bp.frequency.setValueAtTime(cur3[i], tE-0.05);
+          bp.frequency.linearRampToValueAtTime(F(codaC.locus[i]), tE);
+          cur3[i] = F(codaC.locus[i]);
+        }
+      });
+      // nasal vowels get a low nasal resonance mixed in
+      const isNasal = NASAL.has(s.nuc) || (DIPH[s.nuc] && NASAL.has(DIPH[s.nuc][0]));
+      nasalG.gain.setValueAtTime(nasalG.gain.value||0, Math.max(t0, tS-0.02));
+      nasalG.gain.linearRampToValueAtTime(isNasal ? 0.5 : 0, tS+0.04);
+
+      // consonant noise
+      const onDur = lead ? Math.min(lead.dur, n.dur*0.4) : 0;
+      const cAt = Math.max(now, tS - onDur);
+      const pre = CONS[(s.onset||[])[0]];
+      if (pre && s.onset.length>1){
+        if (pre.k==='fric'||pre.k==='affr') hiss(cAt, Math.min(pre.dur, onDur*0.7), pre.band, pre.q, e.gain*0.5,'hiss');
+        else if (pre.k==='stop') hiss(cAt, 0.02, pre.burst, pre.bw, e.gain*0.5,'burst');
+      }
+      if (lead){
+        if (lead.k==='fric') hiss(cAt, Math.max(0.025, onDur), lead.band, lead.q, e.gain*0.55,'hiss');
+        if (lead.k==='affr'){ hiss(cAt, 0.018, lead.burst, 1.2, e.gain*0.5,'burst');
+                              hiss(cAt+0.018, Math.max(0.02, onDur-0.018), lead.band, lead.q, e.gain*0.5,'hiss'); }
+        if (lead.k==='stop'){ hiss(tS-0.024, 0.022, lead.burst, lead.bw, e.gain*0.75,'burst');
+                              if (lead.asp) hiss(tS-0.004, 0.03, 1800, 0.4, e.gain*0.3,'hiss'); }
+      }
+      if (codaC){
+        const cd = Math.min(codaC.dur, n.dur*0.3);
+        if (codaC.k==='fric'||codaC.k==='affr') hiss(tE-cd*0.5, codaC.dur, codaC.band, codaC.q, e.gain*0.5,'hiss');
+        if (codaC.k==='stop') hiss(tE+0.012, 0.02, codaC.burst, codaC.bw, e.gain*0.4,'burst');
+        const second = CONS[(s.coda||[])[1]];
+        if (second && (second.k==='fric'||second.k==='affr'))
+          hiss(tE+0.02, second.dur, second.band, second.q, e.gain*0.4,'hiss');
+      }
+      lastT = tE;
+    });
+
+    osc.start(t0); osc.stop(tEnd+0.2);
+    nodes.push(osc, lfo);
   }
 
   function tick(){
     if (!arr) return;
     const now = ctx.currentTime;
-    while (idx < arr.events.length && startAt + arr.events[idx].t < now + 0.35){
+    while (idx < arr.events.length && startAt + arr.events[idx].t < now + 0.5){
       const e = arr.events[idx++];
-      const at = Math.max(now, startAt + e.t);
-      if (e.kind === 'voice') voice(e, at);
-      else if (e.kind === 'noise') noise(e, at);
-      else tone(e, at);
+      if (e.kind === 'phrase') phrase(e, startAt);
+      else if (e.kind === 'noise') noise(e, Math.max(now, startAt+e.t));
+      else tone(e, Math.max(now, startAt+e.t));
     }
-    if (now > startAt + arr.dur){ stop(); }
+    if (now > startAt + arr.dur) stop();
   }
-
   function play(id, arrangement, callbacks){
     if (cur === id){ stop(); return false; }
     stop(); ensure();
     if (ctx.state === 'suspended') ctx.resume();
-    arr = arrangement; cur = id; cb = callbacks || {};
-    idx = 0; startAt = ctx.currentTime + 0.12;
-    timer = setInterval(tick, 40);
-    tick();
+    arr = arrangement; cur = id; cb = callbacks||{};
+    idx = 0; startAt = ctx.currentTime + 0.25;
+    timer = setInterval(tick, 40); tick();
     return true;
   }
-
   function stop(){
     if (timer){ clearInterval(timer); timer=null; }
     nodes.forEach(n=>{ try{ n.stop(); }catch(_){} });
     nodes = [];
-    const done = cb.onEnd; cur = null; arr = null; cb = {};
+    const done = cb.onEnd; cur=null; arr=null; cb={};
     if (done) done();
   }
-
-  return {
-    play, stop,
+  return { play, stop,
     get playing(){ return cur; },
     elapsed(){ return ctx ? ctx.currentTime - startAt : 0; },
-    levels(){ if (!analyser) return null; analyser.getByteFrequencyData(data); return data; }
-  };
+    levels(){ if (!analyser) return null; analyser.getByteFrequencyData(data); return data; } };
 })();
-
-/* ============================================================
-   3 · CHAT INTERFACE
-   ============================================================ */
+/* ================================================================
+   7 · CHAT
+   ================================================================ */
 const $  = s => document.querySelector(s);
-const el = (tag, cls, html) => { const n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; };
-const esc = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const el = (t,c,h)=>{ const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n; };
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-const thread = $('#thread'), scroller = $('#scroll'), input = $('#input'), sendBtn = $('#send');
-let history = [];      // {title, node}
-let lastSong = null;   // the song we're currently talking about
-let songCount = 0;
+const thread=$('#thread'), scroller=$('#scroll'), input=$('#input'), sendBtn=$('#send'), langSel=$('#langSel');
+let lastSong=null, lastIntent=null, songCount=0, pendingThin=null;
 
 const SEEDS = [
-  { t:"Missing the last train home", s:"a slow one, tenor voice" },
-  { t:"My grandmother's kitchen in summer", s:"warm, nostalgic, a bit funny" },
-  { t:"The worst week I've had in years", s:"loud, angry, no chorus rules" },
-  { t:"Two people not saying the obvious thing", s:"quiet, soprano" }
+  { t:"Missing the last train home",              s:"slow, tenor voice" },
+  { t:"A chuva em Lisboa e ninguém à espera",     s:"em português, lento" },
+  { t:"My grandmother's kitchen in summer",       s:"warm, funny, soprano" },
+  { t:"Une nuit blanche à attendre un message",   s:"en français, piano" }
 ];
 
 function renderEmpty(){
-  thread.innerHTML = '';
+  thread.innerHTML='';
   const box = el('div','empty-state');
   box.appendChild(el('h1',null,'What should the song be about?'));
-  box.appendChild(el('p',null,'Give me an idea, a memory, a mood or one ugly sentence. I’ll write the lyrics, explain what I’m going for, and then sing it to you.'));
+  box.appendChild(el('p',null,'Give me an idea, a memory or one blunt sentence — in English, português, español, français or italiano. I’ll work out what you want, write the lyrics, and sing them.'));
   const seeds = el('div','seeds');
   SEEDS.forEach(s=>{
     const b = el('button','seed', `<b>${esc(s.t)}</b><span>${esc(s.s)}</span>`);
@@ -1025,99 +1635,98 @@ function renderEmpty(){
   box.appendChild(seeds);
   thread.appendChild(box);
 }
-
-function scrollDown(){ scroller.scrollTop = scroller.scrollHeight; }
+const scrollDown = ()=>{ scroller.scrollTop = scroller.scrollHeight; };
 
 function addUser(text){
-  const m = el('div','msg user');
-  m.appendChild(el('div','body', esc(text)));
+  const m = el('div','msg user'); m.appendChild(el('div','body', esc(text)));
   thread.appendChild(m); scrollDown();
 }
 function addBot(){
-  const m = el('div','msg bot');
-  m.appendChild(el('div','avatar','♪'));
-  const body = el('div','body');
-  m.appendChild(body); thread.appendChild(m); scrollDown();
+  const m = el('div','msg bot'); m.appendChild(el('div','avatar','♪'));
+  const body = el('div','body'); m.appendChild(body); thread.appendChild(m); scrollDown();
   return body;
 }
-
-/* typing dots → streamed text */
 function think(body, ms){
   const d = el('div','dots','<span></span><span></span><span></span>');
   body.appendChild(d);
-  return new Promise(res=> setTimeout(()=>{ d.remove(); res(); }, ms));
+  return new Promise(res=>setTimeout(()=>{ d.remove(); res(); }, ms));
 }
 function stream(body, text){
   return new Promise(res=>{
     const p = el('p'); body.appendChild(p);
-    const words = text.split(' ');
-    let i = 0;
-    const caret = el('span','caret');
-    p.appendChild(caret);
+    const words = text.split(' '); let i=0;
+    const caret = el('span','caret'); p.appendChild(caret);
     const iv = setInterval(()=>{
-      caret.insertAdjacentText('beforebegin', (i?' ':'') + words[i]);
-      i++; scrollDown();
-      if (i >= words.length){ clearInterval(iv); caret.remove(); res(p); }
-    }, 22);
+      caret.insertAdjacentText('beforebegin', (i?' ':'')+words[i]); i++; scrollDown();
+      if (i>=words.length){ clearInterval(iv); caret.remove(); res(p); }
+    }, 20);
   });
 }
 
-/* ---------- the lyric sheet ---------- */
+/* what the model understood, shown as chips */
+function readChips(intent, song){
+  const box = el('div','read');
+  const add = (txt, plain)=>{ const s=el('span',plain?'plain':null, esc(txt)); box.appendChild(s); };
+  add(LANGS[song.lang].label);
+  add({dark:'melancholy',bright:'warm',aggro:'angry'}[song.mood]);
+  add(song.bpm + ' bpm');
+  add(REGISTERS[song.register].name);
+  if (song.instr && song.instr.length) song.instr.forEach(i=>add(i, true));
+  if (intent.noChorus) add('no chorus', true);
+  if (song.sections.some(s=>/bridge|ponte|puente|pont/i.test(s.label))) add('bridge', true);
+  if (song.explicit) add('explicit', true);
+  return box;
+}
+
 function renderSheet(song){
   const sheet = el('div','sheet');
   const head = el('div','sheet-head');
   head.innerHTML = `<b>${esc(song.title)}</b>`
-    + (song.aggro ? '<span class="flag">EXPLICIT</span>' : '')
-    + `<span class="meta">${esc(song.keyName)} · ${song.bpm} bpm · ${REGISTERS[song.register].name}</span>`;
+    + (song.explicit ? '<span class="flag">EXPLICIT</span>' : '')
+    + `<span class="meta">${esc(song.keyName)} · ${song.bpm} bpm · ${REGISTERS[song.register].name} · ${esc(LANGS[song.lang].label)}</span>`;
   sheet.appendChild(head);
-  const bodyEl = el('div','sheet-body');
+  const body = el('div','sheet-body');
   song.sections.forEach((sec, si)=>{
-    bodyEl.appendChild(el('div','section-label', esc(sec.label)));
+    body.appendChild(el('div','section-label', esc(sec.label)));
     sec.lines.forEach((text, li)=>{
-      const line = el('div','line dim');
-      line.dataset.key = si+'-'+li;
-      syllabifyLine(text).forEach((syl,k)=>{
-        const s = el('span','syl', esc(syl.txt));
-        s.dataset.k = k;
-        line.appendChild(s);
+      const line = el('div','line dim'); line.dataset.key = si+'-'+li;
+      syllabifyLine(text, song.lang).forEach((syl,k)=>{
+        const s = el('span','syl', esc(syl.txt)); s.dataset.k=k; line.appendChild(s);
       });
-      bodyEl.appendChild(line);
+      body.appendChild(line);
     });
   });
-  sheet.appendChild(bodyEl);
+  sheet.appendChild(body);
   return sheet;
 }
 
-/* ---------- player ---------- */
-const PLAY = "M8 5v14l11-7z", PAUSE = "M6 5h4v14H6zm8 0h4v14h-4z";
+const PLAY="M8 5v14l11-7z", PAUSE="M6 5h4v14H6zm8 0h4v14h-4z";
 function renderPlayer(song, sheet, id){
   const p = el('div','player');
   p.innerHTML = `
     <button class="pbtn" aria-label="Play"><svg viewBox="0 0 24 24"><path d="${PLAY}"/></svg></button>
     <div class="pinfo">
       <b>${esc(song.title)}</b>
-      <span class="meta">${esc(song.genre)} · ${esc(song.keyName)} · ${song.bpm} bpm · ${REGISTERS[song.register].name} vocal</span>
+      <span class="meta">${esc(song.genre)} · ${esc(song.keyName)} · ${song.bpm} bpm · ${REGISTERS[song.register].name}</span>
       <div class="bar"><i></i></div>
     </div>
     <canvas class="viz"></canvas>`;
-  const btn = p.querySelector('.pbtn'), path = p.querySelector('path');
-  const fill = p.querySelector('.bar i'), canvas = p.querySelector('canvas');
+  const btn=p.querySelector('.pbtn'), path=p.querySelector('path');
+  const fill=p.querySelector('.bar i'), canvas=p.querySelector('canvas');
   const arr = arrange(song);
-  let raf = null;
+  let raf=null, lastKey=null;
 
-  function clearHighlight(){
+  function clear(){
     sheet.querySelectorAll('.line').forEach(l=>{ l.classList.remove('active'); l.classList.add('dim'); });
     sheet.querySelectorAll('.syl').forEach(s=>s.classList.remove('sung','now'));
   }
-  let lastKey = null;
   function frame(){
     const t = Engine.elapsed();
-    fill.style.width = Math.min(100, (t/arr.dur)*100) + '%';
-    // karaoke
+    fill.style.width = Math.min(100,(t/arr.dur)*100)+'%';
     arr.lines.forEach(line=>{
       const node = sheet.querySelector(`.line[data-key="${line.si}-${line.li}"]`);
       if (!node) return;
-      const on = t >= line.t0 - 0.25 && t < line.t1;
+      const on = t >= line.t0-0.3 && t < line.t1;
       node.classList.toggle('active', on);
       node.classList.toggle('dim', !on);
       if (on){
@@ -1126,7 +1735,7 @@ function renderPlayer(song, sheet, id){
       }
       line.syls.forEach((syl,k)=>{
         const s = node.children[k]; if (!s) return;
-        const now = t >= syl.t && t < syl.t + Math.max(syl.dur, 0.12);
+        const now = t >= syl.t && t < syl.t + Math.max(syl.dur,0.12);
         s.classList.toggle('now', now);
         s.classList.toggle('sung', !now && t >= syl.t && on);
       });
@@ -1136,153 +1745,163 @@ function renderPlayer(song, sheet, id){
   }
   btn.onclick = ()=>{
     const started = Engine.play(id, arr, { onEnd(){
-      path.setAttribute('d', PLAY);
+      path.setAttribute('d',PLAY);
       if (raf) cancelAnimationFrame(raf); raf=null;
-      fill.style.width='0%'; clearHighlight(); drawViz(canvas);
+      fill.style.width='0%'; clear(); drawViz(canvas);
     }});
-    path.setAttribute('d', started ? PAUSE : PLAY);
+    path.setAttribute('d', started?PAUSE:PLAY);
     if (started){ if (raf) cancelAnimationFrame(raf); frame(); }
   };
   return { node:p, start(){ btn.click(); } };
 }
-
 function drawViz(canvas){
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio||1, rect = canvas.getBoundingClientRect();
   if (canvas.width !== Math.round(rect.width*dpr)){
-    canvas.width = Math.max(1, Math.round(rect.width*dpr));
-    canvas.height = Math.max(1, Math.round(rect.height*dpr));
+    canvas.width = Math.max(1,Math.round(rect.width*dpr));
+    canvas.height= Math.max(1,Math.round(rect.height*dpr));
   }
-  const c = canvas.getContext('2d');
-  c.setTransform(dpr,0,0,dpr,0,0);
+  const c = canvas.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0);
   const w = canvas.width/dpr, h = canvas.height/dpr;
   c.clearRect(0,0,w,h);
   const d = Engine.playing ? Engine.levels() : null;
   const css = getComputedStyle(document.documentElement);
-  const bars = 12, bw = Math.max(1,(w - (bars-1)*2)/bars);
+  const bars=12, bw=Math.max(1,(w-(bars-1)*2)/bars);
   for (let i=0;i<bars;i++){
-    const v = d ? Math.pow(d[Math.floor(i*d.length/bars/2.4)]/255, 1.4) : 0.07;
+    const v = d ? Math.pow(d[Math.floor(i*d.length/bars/2.4)]/255,1.4) : 0.07;
     const bh = Math.max(2, v*h);
     c.fillStyle = (d ? css.getPropertyValue('--accent') : css.getPropertyValue('--line')).trim();
     c.globalAlpha = d ? 0.45+v*0.55 : 1;
     const x = i*(bw+2);
     c.beginPath();
-    c.roundRect ? c.roundRect(x,(h-bh)/2,bw,bh,Math.min(bw/2,2)) : c.rect(x,(h-bh)/2,bw,bh);
+    c.roundRect ? c.roundRect(x,(h-bh)/2,bw,bh,Math.max(0,Math.min(bw/2,2))) : c.rect(x,(h-bh)/2,bw,bh);
     c.fill();
   }
   c.globalAlpha = 1;
 }
 
-/* ---------- follow-up edits ---------- */
+/* --- follow-up edits, in any of the languages --- */
 function parseEdit(text){
   if (!lastSong) return null;
-  const t = text.toLowerCase();
+  const st = ' ' + strip(text) + ' ';
   const o = {}; let touched = false;
-  if (/faster|quicker|speed (it )?up|more energy/.test(t)){ o.bpm = Math.min(190, Math.round(lastSong.bpm*1.22)); touched=true; }
-  if (/slower|slow it down|calmer|softer/.test(t)){ o.bpm = Math.max(52, Math.round(lastSong.bpm*0.8)); touched=true; }
-  if (/angrier|angry|harder|heavier|louder|meaner|aggressive/.test(t)){ o.mood='aggro'; touched=true; }
-  if (/sadder|sad|darker|quieter|lonelier|melanchol/.test(t)){ o.mood='dark'; touched=true; }
-  if (/happier|happy|brighter|lighter|warmer|nicer/.test(t)){ o.mood='bright'; touched=true; }
-  ['soprano','alto','tenor','bass'].forEach(v=>{ if (t.includes(v)){ o.register=v; touched=true; } });
-  if (/female|woman|higher voice/.test(t)){ o.register='soprano'; touched=true; }
-  if (/male|man|deeper voice|lower voice/.test(t)){ o.register='bass'; touched=true; }
-  if (/different lyrics|rewrite|new words|other words|try again|another version|again/.test(t)){ o.salt = String(Math.random()); touched=true; }
-  return touched ? o : null;
+  if (ASK.fast.test(st)){ o.bpm = Math.min(190, Math.round(lastSong.bpm*1.22)); touched=true; }
+  if (ASK.slow.test(st)){ o.bpm = Math.max(50, Math.round(lastSong.bpm*0.8)); touched=true; }
+  if (ASK.angry.test(st)){ o.mood='aggro'; touched=true; }
+  else if (ASK.sad.test(st)){ o.mood='dark'; touched=true; }
+  else if (ASK.happy.test(st)){ o.mood='bright'; touched=true; }
+  ['soprano','alto','tenor','bass'].forEach(v=>{ if (ASK[v].test(st)){ o.register=v; touched=true; } });
+  for (const [re,code] of ASK.lang){ if (re.test(text)){ o.lang=code; touched=true; break; } }
+  if (/\b(different|other|new) (lyrics|words)\b|outra letra|otra letra|autres paroles|altro testo|rewrite|reescreve|de novo|again|another version/i.test(text)){
+    o.salt = String(Math.random()); touched = true;
+  }
+  // an edit is only an edit if it isn't carrying a new idea
+  const L = LANGS[lastSong.lang];
+  const content = strip(text).split(/\s+/).filter(w=>w.length>3 && !L.stop.has(w) && !LANGS.en.stop.has(w));
+  return (touched && content.length <= 4) ? o : null;
 }
 
-/* ---------- history ---------- */
 function addHistory(song, anchor){
   const hist = $('#hist');
   hist.querySelector('.empty')?.remove();
   const b = el('button', null, esc(song.title));
-  b.onclick = ()=>{
-    [...hist.children].forEach(c=>c.classList.remove('on'));
-    b.classList.add('on');
-    anchor.scrollIntoView({behavior:'smooth', block:'start'});
-  };
+  b.onclick = ()=>{ [...hist.children].forEach(c=>c.classList.remove('on')); b.classList.add('on');
+                    anchor.scrollIntoView({behavior:'smooth', block:'start'}); };
   hist.prepend(b);
   [...hist.children].forEach(c=>c.classList.remove('on'));
   b.classList.add('on');
 }
 
-/* ---------- the main turn ---------- */
+/* --- one turn --- */
 async function submit(text){
   text = (text||'').trim();
   if (!text) return;
-  if (thread.querySelector('.empty-state')) thread.innerHTML = '';
+  if (thread.querySelector('.empty-state')) thread.innerHTML='';
   addUser(text);
-  input.value = ''; input.style.height='auto'; sendBtn.disabled = true;
+  input.value=''; input.style.height='auto'; sendBtn.disabled=true;
+
+  // answering the clarifying question
+  if (pendingThin){ text = pendingThin + ' — ' + text; pendingThin = null; }
 
   const edit = parseEdit(text);
   const body = addBot();
-  await think(body, 550 + Math.random()*400);
+  await think(body, 520 + Math.random()*380);
 
-  let song, opener;
+  let song, intent, opener;
   if (edit){
-    song = writeSong(lastSong.idea, Object.assign({salt:String(Math.random())}, edit));
-    song.idea = lastSong.idea;
-    const bits = [];
-    if (edit.bpm) bits.push(edit.bpm > lastSong.bpm ? 'pushed the tempo up' : 'pulled the tempo back');
-    if (edit.mood) bits.push('changed the mood to ' + edit.mood);
-    if (edit.register) bits.push('moved it to a ' + edit.register);
-    if (!bits.length) bits.push('rewrote the words');
-    opener = `Done — ${bits.join(', ')}. Same idea, new take: a ${song.genre} in ${song.keyName} at ${song.bpm} bpm, ${REGISTERS[song.register].name} vocal. Here it is:`;
+    intent = Object.assign({}, lastIntent, edit.lang ? {lang:edit.lang} : {});
+    song = writeSong(intent, Object.assign({salt:String(Math.random())}, edit));
+    const L = LANGS[song.lang], bits = [];
+    if (edit.bpm) bits.push(edit.bpm > lastSong.bpm ? 'tempo up' : 'tempo down');
+    if (edit.mood) bits.push({dark:'more melancholy',bright:'warmer',aggro:'angrier'}[edit.mood]);
+    if (edit.register) bits.push(edit.register + ' voice');
+    if (edit.lang) bits.push(LANGS[edit.lang].label);
+    if (!bits.length) bits.push('new words');
+    opener = L.say.edited(bits.join(', '));
   } else {
-    song = writeSong(text, {});
+    intent = parseIntent(text, lastSong && lastSong.lang);
+    if (langSel.value !== 'auto') intent.lang = langSel.value;
+    if (intent.thin){
+      const L = LANGS[intent.lang];
+      await stream(body, L.say.thin);
+      const quick = el('div','quick');
+      L.say.thinOpts.forEach(opt=>{
+        const b = el('button', null, esc(opt));
+        b.onclick = ()=>{ quick.remove(); submit(opt); };
+        quick.appendChild(b);
+      });
+      body.appendChild(quick); scrollDown();
+      pendingThin = text;
+      return;
+    }
+    song = writeSong(intent, {});
     opener = describe(song);
   }
-  lastSong = song;
+  lastSong = song; lastIntent = intent;
 
+  body.appendChild(readChips(intent, song));
   await stream(body, opener);
 
   const sheet = renderSheet(song);
   body.appendChild(sheet);
 
+  const L = LANGS[song.lang];
   const id = 'song'+(++songCount);
   const actions = el('div','actions');
-  const createBtn = el('button','create','▶ Create the song');
-  const voiceSel = el('select','mini');
+  const createBtn = el('button','create', L.say.create);
+  const voiceSel  = el('select','mini');
   ['auto','soprano','alto','tenor','bass'].forEach(v=>{
     const o = document.createElement('option');
-    o.value = v; o.textContent = v==='auto' ? 'Voice: '+REGISTERS[song.register].name : 'Voice: '+v;
+    o.value=v; o.textContent = v==='auto' ? 'Voice: '+REGISTERS[song.register].name : 'Voice: '+v;
     voiceSel.appendChild(o);
   });
-  const againBtn = el('button','mini','↻ Different words');
+  const againBtn = el('button','mini', L.say.again);
   actions.append(createBtn, voiceSel, againBtn);
-  body.appendChild(actions);
-  scrollDown();
+  body.appendChild(actions); scrollDown();
 
   createBtn.onclick = async ()=>{
     if (voiceSel.value !== 'auto') song.register = voiceSel.value;
-    createBtn.disabled = true;
-    createBtn.textContent = '● Composing…';
-    await new Promise(r=>setTimeout(r, 700));
+    createBtn.disabled = true; createBtn.textContent = L.say.composing;
+    await new Promise(r=>setTimeout(r,650));
     createBtn.remove(); voiceSel.remove(); againBtn.remove();
     const player = renderPlayer(song, sheet, id);
-    body.appendChild(player.node);
-    scrollDown();
+    body.appendChild(player.node); scrollDown();
     player.start();
     addHistory(song, body.parentElement);
   };
-  againBtn.onclick = ()=> submit('different lyrics, same idea');
+  againBtn.onclick = ()=> submit({en:'different words',pt:'outra letra',es:'otra letra',fr:'autres paroles',it:'altro testo'}[song.lang]);
 }
 
-/* ---------- composer wiring ---------- */
 input.addEventListener('input', ()=>{
-  input.style.height = 'auto';
-  input.style.height = Math.min(input.scrollHeight, 180) + 'px';
+  input.style.height='auto';
+  input.style.height = Math.min(input.scrollHeight,180)+'px';
   sendBtn.disabled = !input.value.trim();
 });
-input.addEventListener('keydown', e=>{
-  if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); submit(input.value); }
-});
+input.addEventListener('keydown', e=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); submit(input.value); } });
 sendBtn.onclick = ()=> submit(input.value);
-$('#newBtn').onclick = ()=>{ Engine.stop(); lastSong=null; renderEmpty(); };
+$('#newBtn').onclick = ()=>{ Engine.stop(); lastSong=null; lastIntent=null; pendingThin=null; renderEmpty(); };
 $('#menuBtn').onclick = ()=> $('#sidebar').classList.toggle('hide');
 if (window.innerWidth > 860) $('#sidebar').classList.remove('hide');
-window.addEventListener('resize', ()=>{
-  if (window.innerWidth > 860) $('#sidebar').classList.remove('hide');
-});
+window.addEventListener('resize', ()=>{ if (window.innerWidth>860) $('#sidebar').classList.remove('hide'); });
 
 renderEmpty();
 </script>
